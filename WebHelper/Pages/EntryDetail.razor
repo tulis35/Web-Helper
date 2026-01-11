@@ -175,13 +175,6 @@ else
     {
         ShowHideLoading = true;
 
-        if (Entry.TextFiles.Contains(newItemName + NewItemExt) || Entry.TableFiles.Contains(newItemName + NewItemExt) || Entry.URLsFiles.Contains(newItemName + NewItemExt))
-        {
-            result = new Result(ResultState.Error, $"Záznam {newItemName} již existuje!");
-            ShowHideLoading = false;
-            return;
-        }
-
         result = await IFileManager.CreateNewItem(Entry, newItemName + NewItemExt, newItemType);
 
         newItemName = "";
@@ -194,17 +187,12 @@ else
         ShowHideLoading = true;
         string fullNewName = newItemName + NewItemExt;
 
-        if (Entry.TextFiles.Contains(fullNewName) || Entry.TableFiles.Contains(fullNewName) || Entry.URLsFiles.Contains(fullNewName))
-        {
-            result = new Result(ResultState.Error, $"Záznam {newItemName} již existuje!");
-            ShowHideLoading = false;
-            return;
-        }
-
         result = await IFileManager.CreateNewItem(Entry, fullNewName, newItemType);
 
         if (result.ResultState == ResultState.Success)
             OpenDetail(new ItemFile(Entry.Name, fullNewName, newItemType));
+        else
+            ShowHideLoading = false;
     }
 
     private void ShowHideCreateNew()

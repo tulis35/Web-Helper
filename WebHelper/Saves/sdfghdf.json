@@ -1,9 +1,14 @@
 {
   "Name": "sdfghdf",
-  "TextFiles": [],
+  "TextFiles": [
+    ""
+  ],
   "TableFiles": [],
   "URLsFiles": [],
   "ImagesFiles": [],
   "TasksFiles": [],
-  "PDFsFiles": []
+  "PDFsFiles": [],
+  "ExtAppsFiles": [
+    "asdfasdfas.json"
+  ]
 }

@@ -75,19 +75,19 @@ namespace WebHelper.Models
             switch (item.ItemFileType)
             {
                 case ItemFileType.Text:
-                    TextFiles.Add(item.Name);
+                    TextFiles.Add(item.FileName);
                     break;
                 case ItemFileType.Table:
-                    TableFiles.Add(item.Name);
+                    TableFiles.Add(item.FileName);
                     break;
                 case ItemFileType.URLs:
-                    URLsFiles.Add(item.Name);
+                    URLsFiles.Add(item.FileName);
                     break;
                 case ItemFileType.Task:
-                    TasksFiles.Add(item.Name);
+                    TasksFiles.Add(item.FileName);
                     break;
                 case ItemFileType.ExtApp:
-                    ExtAppsFiles.Add(item.Name);
+                    ExtAppsFiles.Add(item.FileName);
                     break;
             }
         }

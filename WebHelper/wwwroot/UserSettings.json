@@ -2,6 +2,20 @@
   "NumberOfLastItemsSaved": 6,
   "LastShownItems": [
     {
+      "EntryName": "sdfghdf",
+      "ItemName": "asdfasdfas",
+      "ItemFileName": "asdfasdfas.json",
+      "ItemFileType": 6,
+      "IsShortCut": false
+    },
+    {
+      "EntryName": "sdfghdf",
+      "ItemName": "tetetetete",
+      "ItemFileName": "tetetetete.json",
+      "ItemFileType": 6,
+      "IsShortCut": false
+    },
+    {
       "EntryName": "ttttt",
       "ItemName": "ttttttttttttttt",
       "ItemFileName": "ttttttttttttttt.xml",
@@ -27,20 +41,6 @@
       "ItemName": "asdfasdfasdfsdaf2",
       "ItemFileName": "asdfasdfasdfsdaf2.txt",
       "ItemFileType": 0,
-      "IsShortCut": false
-    },
-    {
-      "EntryName": "test45",
-      "ItemName": "drgsdfgthsdfghsg",
-      "ItemFileName": "drgsdfgthsdfghsg.xml",
-      "ItemFileType": 3,
-      "IsShortCut": false
-    },
-    {
-      "EntryName": "test45",
-      "ItemName": "order888",
-      "ItemFileName": "order888.png",
-      "ItemFileType": 2,
       "IsShortCut": false
     }
   ],
