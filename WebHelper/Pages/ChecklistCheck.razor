@@ -1,0 +1,93 @@
+﻿@page "/checklistcheck/{filename}/{issaved:bool}"
+@inherits BasePage
+
+<TitleBar Title="@checklist.Name" Back="Back" Refresh="RefreshData" Save="Save"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+<div class="MainBody">
+    <ResultDialog @bind-result="@result"></ResultDialog>
+    @if (!checklist.IsSaved)
+    {
+        <div>
+            <input type="text" @bind-value="@newName" />
+        </div>
+    }
+    <div class="tablescroll">
+        <table class="width100p scroll">
+            <thead>
+                <tr class="table-thead-tr">
+                    <th class="table-td">    
+                
+                    </th>
+                    <th class="table-td table-td-text">
+                        Text
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(ChecklistItem item in checklist.Items)
+                {
+                    <tr class="table-tbody-tr">
+                        <td class="table-td" style="width:3%;">
+                            <input type="checkbox" class="checkbox" @bind="item.IsChecked"/>
+                        </td>
+                        <td class="table-td table-td-text">
+                            @item.Text
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string FileName { get; set; }
+    [Parameter] public bool IsSaved { get; set; }
+    private Checklist checklist;
+    private string newName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        checklist = await IFileManager.GetChecklist(FileName, IsSaved);
+        newName = checklist.Name;
+        ShowHideLoading = false;
+    }
+
+    private void Back()
+    {
+        if (checklist.IsSaved)
+            NavManager.NavigateTo("/checklistsavedpage");
+        else
+            NavManager.NavigateTo("/checklistpage");
+    }
+
+    private async Task Save()
+    {
+        if (string.IsNullOrEmpty(newName))
+        {
+            result = new Result(ResultState.Error, "název musí být vyplněný!");
+            return;
+        }
+        ShowHideLoading = true;
+        IsSaved = true;
+        List<ChecklistItem> list = new List<ChecklistItem>();
+        list.AddRange(checklist.Items);
+        newName = newName + ".json";
+        checklist = new Checklist(newName, list, IsSaved);
+        result = await IFileManager.SaveChecklist(checklist);
+
+        ShowHideLoading = false;
+
+        NavManager.NavigateTo("/checklistcheck/" + newName + "/true");
+    }
+}

@@ -1,0 +1,191 @@
+﻿@page "/checklistdetail/{filename}"
+@inherits BasePage
+
+<TitleBar Title="@checklist.Name" Back="Back" Save="Save" UnSavedChanges="AreChanges"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+
+@if (checklist == null)
+{
+    <h3 class="" style="font-style:italic; color:lightgray;">Záznam nenalezen!</h3>
+}
+else
+{
+    <ResultDialog @bind-result="@result"></ResultDialog>
+    <div class="row MainBody">
+        <div class="col-xl-8 tablescroll">
+            <table class="width100p">
+                <thead>
+                    <tr class="table-thead-tr">
+                        <th class="table-td table-td-text">
+                            Text
+                        </th>
+                        <th class="table-td table-td-text">
+                            Pořadí
+                        </th>
+                        <th class="table-td width10p" colspan="2">
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(ChecklistItem item in checklist.Items)
+                    {
+                        <tr class="table-tbody-tr">
+                            <td class="table-td table-td-text w-75">
+                                @item.Text
+                            </td>
+                            <td class="table-td">
+                                @item.Rank
+                            </td>
+                            <td class="table-td">
+                                <button class="btn btn-warning margin5" @onclick="() => OpenEditDialog(item)"><i class="icon32 icon-edit"></i></button>
+                            </td>
+                            <td class="table-td">
+                                <button class="btn btn-danger margin5" @onclick="() => OpenDialogDelete(item)"><i class="icon32 icon-delete"></i></button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-xl-4">
+            <hr />
+            <div>
+                Pořadí: <input type="number" @bind="NewRank" min="1" class="width100p margin5" />
+            </div>
+            <div>
+                Text:
+            </div>
+            <textarea @bind="NewText" placeholder="Text..." class="width100p margin5 heightTextArea"></textarea>
+            <div>
+                <button class="btn btn-primary" @onclick="AddRow">Přidat</button>
+            </div>
+        </div>
+    </div>
+
+    @if (DialogDeleteIsOpen)
+    {
+        <GenericDialog Caption="Smazat záznam"
+                       Message="@DeleteMessage"
+                       OnClose="@DeleteItem"
+                       Type="GenericDialog.Category.DeleteNot">
+        </GenericDialog>
+    }@if (ShowHideEditDialog)
+    {
+        <EditTableRow OnClose="EditRow" RowToEdit="RowToEdit"></EditTableRow>
+    }
+}
+
+@code {
+    [Parameter] public string FileName { get; set; }
+    private Checklist checklist;
+
+    private string DeleteMessage = "";
+    private ChecklistItem ItemToDelete = new ChecklistItem();
+
+    private int NewRank = 1;
+    private string NewText = "";
+
+    private bool ShowHideEditDialog = false;
+    private DataRow RowToEdit = null;
+    private int EditItemIndex = -1;
+
+    private bool AreChanges = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        checklist = await IFileManager.GetChecklist(FileName, false);
+        NewRank = checklist.Items.Count + 1;
+        ShowHideLoading = false;
+        AreChanges = false;
+    }
+
+    private void Back()
+    {
+        NavManager.NavigateTo("/checklistpage");
+    }
+
+    private async Task Save()
+    {
+        ShowHideLoading = true;
+        result = await IFileManager.SaveChecklist(checklist);
+
+        await RefreshData();
+    }
+
+    private async Task DeleteItem(bool IsOK)
+    {
+        if (!string.IsNullOrEmpty( ItemToDelete.Text))
+            checklist.Items.Remove(ItemToDelete);
+
+        ItemToDelete = new ChecklistItem();
+
+        DialogDeleteIsOpen = false;
+        NewRank = checklist.Items.Count == 1 ? 1 : checklist.Items.Count - 1;
+
+        AreChanges = true;
+    }
+
+    private void OpenDialogDelete(ChecklistItem item)
+    {
+        DialogDeleteIsOpen = true;
+        DeleteMessage = "Smazat tento záznam?";
+        ItemToDelete = item;
+    }
+
+    private void AddRow()
+    {
+        if (string.IsNullOrEmpty(NewText))
+        {
+            result = new Result(ResultState.Error, "Text musí být vyplněn!");
+            return;
+        }
+
+        ChecklistItem newItem = new ChecklistItem(NewText, NewRank, false);
+
+        checklist.Items.Add(newItem);
+
+        NewText = "";
+        NewRank = checklist.Items.Count + 1;
+
+        AreChanges = true;
+    }
+
+    private void OpenEditDialog(ChecklistItem item)
+    {
+
+        ShowHideEditDialog = true;
+        EditItemIndex = checklist.Items.IndexOf(item);
+
+        DataTable dt = new DataTable();
+        dt.Columns.Add(new DataColumn("Text", typeof(string)));
+        dt.Columns.Add(new DataColumn("Rank", typeof(Int32)));
+
+        RowToEdit = dt.NewRow();
+
+        RowToEdit["Text"] = item.Text;
+        RowToEdit["Rank"] = item.Rank;
+    }
+
+    private async Task EditRow(DataRow dr)
+    {
+        if(dr != null)
+        {
+            ChecklistItem item = new ChecklistItem(dr["Text"].ToString(), (int)dr["Rank"], false);
+            checklist.Items[EditItemIndex] = item;
+
+            AreChanges = true;
+        }
+        RowToEdit = null;
+        ShowHideEditDialog = false;
+    }
+}

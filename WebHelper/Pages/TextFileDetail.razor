@@ -1,0 +1,73 @@
+﻿@page "/textfiledetail/{itemname}/{filename}"
+@inherits BasePage
+
+<TitleBar Title="@ItemFile.Name" Back="Back" Save="Save" UnSavedChanges="AreChanges" AddToFavorite="AddToFavorites"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+
+@if (ItemFile == null)
+{
+    <h3 class="" style="font-style:italic; color:lightgray;">Záznam nenalezen!</h3>
+}
+else
+{
+    <ResultDialog @bind-result="@result"></ResultDialog>
+    <div class="MainBody" style="height:86vh;">
+        <textarea class="textfield" value="@ItemFile.RawContent" style="padding-top:5px;margin-top:3px;" @onchange="@(t => TextChanged(t.Value))" @onkeypress="CheckChange"></textarea>
+    </div>
+}
+
+@code {
+    [Parameter] public string FileName { get; set; }
+    [Parameter] public string ItemName { get; set; }
+    private ItemFile ItemFile;
+
+    private bool AreChanges = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+    private void Back()
+    {
+        NavManager.NavigateTo("/entrydetail/" + ItemName);
+    }
+
+    private async Task Save()
+    {
+        ShowHideLoading = true;
+        result = await IFileManager.SaveTextFile(ItemFile);
+
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        ItemFile = await IFileManager.GetTextFile(ItemName, FileName);
+        await IFileManager.AddLastShownItem(ItemName, ItemFile);
+        ShowHideLoading = false;
+        AreChanges = false;
+    }
+
+    private void TextChanged(object newText)
+    {
+        ItemFile.RawContent = newText.ToString();
+        AreChanges = true;
+    }
+
+    private void CheckChange()
+    {
+        AreChanges = true;
+    }
+
+    private async Task AddToFavorites()
+    {
+        ShowHideLoading = true;
+        result = await IFileManager.AddFavorite(ItemName, ItemFile);
+        ShowHideLoading = false;
+    }
+}

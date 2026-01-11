@@ -1,0 +1,49 @@
+{
+  "NumberOfLastItemsSaved": 6,
+  "LastShownItems": [
+    {
+      "EntryName": "ttttt",
+      "ItemName": "ttttttttttttttt",
+      "ItemFileName": "ttttttttttttttt.xml",
+      "ItemFileType": 1,
+      "IsShortCut": false
+    },
+    {
+      "EntryName": "testovaci",
+      "ItemName": "testovaci t5",
+      "ItemFileName": "testovaci t5.xml",
+      "ItemFileType": 1,
+      "IsShortCut": false
+    },
+    {
+      "EntryName": "testovaci",
+      "ItemName": "t68",
+      "ItemFileName": "t68.txt",
+      "ItemFileType": 0,
+      "IsShortCut": false
+    },
+    {
+      "EntryName": "test45",
+      "ItemName": "asdfasdfasdfsdaf2",
+      "ItemFileName": "asdfasdfasdfsdaf2.txt",
+      "ItemFileType": 0,
+      "IsShortCut": false
+    },
+    {
+      "EntryName": "test45",
+      "ItemName": "drgsdfgthsdfghsg",
+      "ItemFileName": "drgsdfgthsdfghsg.xml",
+      "ItemFileType": 3,
+      "IsShortCut": false
+    },
+    {
+      "EntryName": "test45",
+      "ItemName": "order888",
+      "ItemFileName": "order888.png",
+      "ItemFileType": 2,
+      "IsShortCut": false
+    }
+  ],
+  "FavoriteItems": [],
+  "MaxFileSizeInMB": 50
+}

@@ -1,0 +1,80 @@
+﻿<div class="modal fade show" id="myModal" style="display:block; background-color: rgba(10,10,10,.8);" aria-modal="true" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Editace</h4>
+                <button type="button" class="close"
+                        @onclick="@Cancel">
+                    &times;
+                </button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <p style="margin-bottom:0.3rem;">Url:</p>
+                </div>
+                <div>
+                    <input type="url" @bind-value="url" class="width100p" />
+                </div>
+                <div>
+                    <p style="margin-bottom:0.3rem;margin-top:1.2rem">Pořadí:</p>
+                </div>
+                <div>
+                    <input type="number" @bind-value="rank" class="width100p" min="1" />
+                </div>
+                <div>
+                    <p style="margin-bottom:0.3rem;margin-top:1.2rem">Poznámka:</p>
+                </div>
+                <div>
+                    <textarea type="text" @bind="text" class="width100p heightTextArea" min="1" ></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary"
+                        @onclick=@Ok>
+                    Uložit
+                </button>
+                <button type="button" class="btn btn-warning"
+                        @onclick="@Cancel">
+                    Zrušit
+                </button>
+
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    [Parameter] public EventCallback<DataRow> OnClose { get; set; }
+    [Parameter] public DataRow RowToEdit { get; set; }
+
+    private string text;
+    private int rank;
+    private string url;
+
+    protected override async Task OnInitializedAsync()
+    {
+        text = RowToEdit["Description"].ToString();
+        rank = (int)RowToEdit["Rank"];
+        url = RowToEdit["URL"].ToString();
+    }
+
+    private Task Cancel()
+    {
+        text = "";
+        rank = 1;
+        url = "";
+        return OnClose.InvokeAsync(null);
+    }
+    private Task Ok()
+    {
+        RowToEdit["Description"] = text;
+        RowToEdit["Rank"] = rank;
+        RowToEdit["URL"] = url;
+
+        text = "";
+        rank = 1;
+        url = "";
+
+        return OnClose.InvokeAsync(RowToEdit);
+    }
+
+}

@@ -1,0 +1,7 @@
+﻿<button class="btn btn-primary margin5" @onclick="() => DetailFce.InvokeAsync(DetailParam)" title="Detail"><i class="icon-detail"></i></button>
+
+@code {
+    @typeparam T
+    [Parameter] public EventCallback<T> DetailFce { get; set; }
+    [Parameter] public T DetailParam { get; set; }
+}

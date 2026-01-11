@@ -1,0 +1,14 @@
+﻿<div class="row ">
+    <div class="col-xl-11">
+        <h3 class="title">@Title</h3>
+    </div>
+    <div class="col-xl-1">
+        <button class="btn btn-primary" style="float:right;" @onclick="Back" title="Zpět">Zpět</button>
+    </div>
+
+</div>
+
+@code {
+    [Parameter] public EventCallback Back { get; set; }
+    [Parameter] public string Title { get; set; }
+}

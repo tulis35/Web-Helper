@@ -1,0 +1,450 @@
+﻿@page "/entrydetail/{itemname}"
+@implements IDisposable;
+@inherits BasePage
+
+<TitleBar Title="@ItemName" Back="Back" Refresh="RefreshData"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+
+@if (Entry == null)
+{
+    <h3 class="" style="font-style:italic; color:lightgray;">Záznam nenalezen!</h3>
+}
+else
+{
+    <ResultDialog @bind-result="@result"></ResultDialog>
+    <div class="row MainBody">
+        <div class="col-xl-6 tablescroll" style="height: 86vh;">
+            <table class="width100p scroll">
+                <thead class="">
+                    <tr class="table-thead-tr">
+                        <th class="table-td table-td-text width8p">
+                            Detail
+                        </th>
+                        <th class="table-td table-td-text">
+                            Název
+                        </th>
+                        <th class="table-td width8p">
+                            Typ
+                        </th>
+                        <th class="table-td width10p" colspan="2">
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Entry.AllFiles)
+                    {
+                        ItemFile itemFile = new ItemFile(Entry.Name, item.Key, item.Value);
+                        int unfinishedTask = UnclopletedTasks(itemFile);
+                        <tr class="table-tbody-tr">
+                            @if(itemFile.ItemFileType == ItemFileType.PDF)
+                            {
+                                <td class="table-td table-td-text" colspan="2">
+                                    <a href="@(itemFile.Path.Replace("wwwroot\\",""))" target="_blank">@itemFile.Name</a>
+                                </td>
+                            }
+                            else
+                            {
+                                <td class="table-td width8p">
+                                    <button class="btn btn-primary margin5" @onclick="() => OpenDetail(itemFile)"><i class="icon-detail"></i></button>
+                                </td>
+                                @if (itemFile.ItemFileType == ItemFileType.URLs && !IsMoreURLs(itemFile) && ItemToCheck != null && ItemToCheck.TableView.Rows.Count != 0)
+                                {
+                                    <td class="table-td table-td-text">
+                                        <a href="@(ItemToCheck.TableView.Rows[0]["URL"])" target="_blank" title="@(ItemToCheck.TableView.Rows[0]["Description"])">@itemFile.Name</a>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td class="table-td table-td-text">
+                                        @itemFile.Name <span style="color:red;">@(unfinishedTask == 0 ? string.Empty : $"({unfinishedTask})")</span>
+                                    </td>
+                                }
+                            }
+                            <td class="table-td">
+                                <ItemTypeIcon Type="itemFile.ItemFileType"></ItemTypeIcon>
+                            </td>
+                            <td class="table-td">
+                                <RenameBTN RenameVar="@itemFile" T="ItemFile" RenameFce="OpenDialogRename"></RenameBTN>
+                            </td>
+                            <td class="table-td">
+                                <DeleteBTN DeleteFce="OpenDialogDelete" DeleteVar="@itemFile" T="ItemFile"></DeleteBTN>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-xl-6">
+            <div class="width100p title margin5 clickable" @onclick="ShowHideCreateNew">
+                <span class="">Nový:</span>
+            </div>
+            @if (ShowCreateNew)
+            {
+                <div class="margin5">
+                    <input type="text" @bind-value="newItemName" placeholder="Název..." class="width100p" />
+                </div>
+                <ComboBox Items="AllowedItemsToCreate" OnClose="@ComboItemTypeClose"></ComboBox>
+                <div class="row" style="margin-left:1px;">
+                    <button class="btn btn-primary margin5" @onclick="CreateNew">Vytvořit</button>
+                    <button class="btn btn-primary margin5" @onclick="CreateAndOpenNew">Vytvořit a Otevřít</button>
+                </div>
+                <hr />
+                <span class="margin5">Import obrázku:</span>
+                <div class="margin5">
+                    <InputFile OnChange="@LoadFiles"></InputFile>                    
+                </div>
+                <div class="margin5">
+                    <span style="font-style: italic; font-size:12px; ">Max. velikost pro import je @(maxFileSize/1000000) MB!</span>
+                </div>
+                <div>
+                    <button class="btn btn-primary margin5" @onclick="ImportImage">Importovat</button>
+                </div>
+                <hr />
+                <span class="margin5">Import PDF:</span>
+                <div class="margin5">
+                    <InputFile OnChange="@LoadPDF"></InputFile>
+                </div>
+                <div class="margin5">
+                    <span style="font-style: italic; font-size:12px; ">Max. velikost pro import je @(maxFileSize/1000000) MB!</span>
+                </div>
+                <div>
+                    <button class="btn btn-primary margin5" @onclick="ImportPDF">Importovat</button>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (DialogDeleteIsOpen)
+    {
+        <GenericDialog Caption="Smazat záznam"
+        Message="@DeleteMessage"
+        OnClose="@DeleteItem"
+        Type="GenericDialog.Category.DeleteNot">
+        </GenericDialog>
+    }
+
+    @if (ShowRenameDialog)
+    {
+        <RenameDialog name="@ItemToRename.Name" OnClose="OnDialogRenameClose"></RenameDialog>
+    }
+}
+
+@code {
+    [Parameter] public string ItemName { get; set; }
+    private Entry Entry;
+    private bool ShowCreateNew = false;
+    private string newItemName;
+    private string[] AllowedItemsToCreate = { "Text", "Tabulka", "URL Tabulka", "Úkol", "Aplikace" };
+    private ItemFileType newItemType;
+    private string NewItemExt = "";
+
+    private string DeleteMessage = "";
+    private ItemFile ItemToDelete = null;
+
+    private string ImportImagePath = "";
+
+    IBrowserFile loadedFile = null;
+    IBrowserFile loadedPDF = null;
+
+    private bool ShowRenameDialog = false;
+
+    private ItemFile ItemToRename = null;
+
+    private ItemFile ItemToCheck = null;
+
+    private long maxFileSize = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        Entry = await IFileManager.GetEntry(ItemName);
+        maxFileSize = IFileManager.GetMaxImportFileSize();
+        ShowHideLoading = false;
+    }
+
+    private async Task CreateNew()
+    {
+        ShowHideLoading = true;
+
+        if (Entry.TextFiles.Contains(newItemName + NewItemExt) || Entry.TableFiles.Contains(newItemName + NewItemExt) || Entry.URLsFiles.Contains(newItemName + NewItemExt))
+        {
+            result = new Result(ResultState.Error, $"Záznam {newItemName} již existuje!");
+            ShowHideLoading = false;
+            return;
+        }
+
+        result = await IFileManager.CreateNewItem(Entry, newItemName + NewItemExt, newItemType);
+
+        newItemName = "";
+
+        await RefreshData();        
+    }
+
+    private async Task CreateAndOpenNew()
+    {
+        ShowHideLoading = true;
+        string fullNewName = newItemName + NewItemExt;
+
+        if (Entry.TextFiles.Contains(fullNewName) || Entry.TableFiles.Contains(fullNewName) || Entry.URLsFiles.Contains(fullNewName))
+        {
+            result = new Result(ResultState.Error, $"Záznam {newItemName} již existuje!");
+            ShowHideLoading = false;
+            return;
+        }
+
+        result = await IFileManager.CreateNewItem(Entry, fullNewName, newItemType);
+
+        if (result.ResultState == ResultState.Success)
+            OpenDetail(new ItemFile(Entry.Name, fullNewName, newItemType));
+    }
+
+    private void ShowHideCreateNew()
+    {
+        ShowCreateNew = !ShowCreateNew;
+    }
+
+    private void Back()
+    {
+        NavManager.NavigateTo("/entrylist");
+    }
+
+    private async Task ComboItemTypeClose(object returnVal)
+    {
+        if (returnVal == null)
+        {
+            result = new Result(ResultState.Error, "Musí být vybrán typ!");
+            NewItemExt = "";
+            return;
+        }
+
+        switch (returnVal.ToString())
+        {
+            case "Text":
+                newItemType = ItemFileType.Text;
+                NewItemExt = ".txt";
+                break;
+            case "Tabulka":
+                newItemType = ItemFileType.Table;
+                NewItemExt = ".xml";
+                break;
+            case "URL Tabulka":
+                newItemType = ItemFileType.URLs;
+                NewItemExt = ".xml";
+                break;
+            case "Úkol":
+                newItemType = ItemFileType.Task;
+                NewItemExt = ".xml";
+                break;
+            case "Aplikace":
+                newItemType = ItemFileType.ExtApp;
+                NewItemExt = ".json";
+                break;
+        }
+    }
+
+    private async Task DeleteItem(bool IsOK)
+    {
+        if (IsOK)
+        {
+            ShowHideLoading = true;
+
+            result = await IFileManager.DeleteItem(Entry, ItemToDelete);
+
+            ItemToDelete = null;            
+
+            await RefreshData();
+        }
+        DialogDeleteIsOpen = false;
+    }
+
+    private void OpenDialogDelete(ItemFile item)
+    {
+        DialogDeleteIsOpen = true;
+        DeleteMessage = "Smazat záznam \"" + item.Name + "\"?";
+        ItemToDelete = item;
+    }
+
+    private void OpenDetail(ItemFile item)
+    {
+        NavManager.NavigateTo(item.GetDetailPath());
+    }
+
+    private async Task ImportImage()
+    {
+        ShowHideLoading = true;
+        if (loadedFile == null)
+        {
+            result = new Result(ResultState.Error, "Není vybrán obrázek pro import!");
+            ShowHideLoading = false;
+            return;
+        }
+        result = await IFileManager.ImportImage(Entry, loadedFile.Name);
+
+        await RefreshData();
+    }
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        ShowHideLoading = true;
+
+        loadedFile = null;
+
+        try
+        {
+            loadedFile = e.File;
+
+            if (Entry.ImagesFiles.Contains(loadedFile.Name))
+            {
+                result = new Result(ResultState.Error, "Obrázek již existuje!");
+                ShowHideLoading = false;
+                loadedFile = null;
+                return;
+            }
+
+            if (!Models.Enums.AllowedExtensions.AllowedImagesExt.Contains(loadedFile.Name.Split('.').Last()))
+            {
+                result = new Result(ResultState.Error, "Nepovolený typ obrázku!");
+                ShowHideLoading = false;
+                loadedFile = null;
+                return;
+            }
+
+            var path = Path.Combine(Environment.ContentRootPath, IFileManager.GetTmpFolder(), loadedFile.Name);
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await loadedFile.OpenReadStream(maxFileSize).CopyToAsync(fs);
+        }
+        catch (Exception ex)
+        {
+            result = new Result(ResultState.Error, "Načtení obrázku selhalo." + "\r\n" + ex.Message);
+            loadedFile = null;
+            Logger.Log(ex);
+        }
+        finally
+        {
+            ShowHideLoading = false;
+        }        
+    }
+
+    private void OpenDialogRename(ItemFile itemFile)
+    {
+        ItemToRename = itemFile;
+        ShowRenameDialog = true;
+    }
+
+    private async Task OnDialogRenameClose(string newName)
+    {
+        if (!string.IsNullOrEmpty(newName))
+        {
+            result = await IFileManager.RenameItem(Entry, ItemToRename, newName);
+            await RefreshData();
+        }
+        ItemToRename = null;
+        ShowRenameDialog = false;
+    }
+
+    public async void Dispose()
+    {
+        if (loadedFile != null && !string.IsNullOrEmpty(loadedFile.Name))
+        {
+            await IFileManager.ClearTmpFile(loadedFile.Name);
+        }
+    }
+
+    private int UnclopletedTasks(ItemFile itemFile)
+    {
+        if (itemFile.ItemFileType != ItemFileType.Task)
+            return 0;
+
+        GetTaskFile(itemFile);
+        int number = 0;
+        if (ItemToCheck != null)
+        {
+            foreach (DataRow row in ItemToCheck.TableView.Rows)
+                if (!Convert.ToBoolean(row["Completed"]))
+                    number++;
+        }
+
+        return number;
+
+    }
+
+    private async Task GetTaskFile(ItemFile itemFile)
+    {
+        ItemToCheck = await IFileManager.GetTableTask(Entry.Name, itemFile.FileName);
+    }
+    private async Task LoadPDF(InputFileChangeEventArgs e)
+    {
+        ShowHideLoading = true;
+
+        loadedPDF = null;
+
+        try
+        {
+            loadedPDF = e.File;
+
+            if (Entry.PDFsFiles.Contains(loadedPDF.Name))
+            {
+                result = new Result(ResultState.Error, "PDF již existuje!");
+                ShowHideLoading = false;
+                loadedPDF = null;
+                return;
+            }
+
+            if (loadedPDF.Name.Split('.').Last() != "pdf")
+            {
+                result = new Result(ResultState.Error, "Nepovolený typ souboru!");
+                ShowHideLoading = false;
+                loadedPDF = null;
+                return;
+            }
+
+            var path = Path.Combine(Environment.ContentRootPath, IFileManager.GetTmpFolder(), loadedPDF.Name);
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await loadedPDF.OpenReadStream(IFileManager.GetMaxImportFileSize()).CopyToAsync(fs);
+        }
+        catch (Exception ex)
+        {
+            result = new Result(ResultState.Error, "Načtení PDF selhalo." + "\r\n" + ex.Message);
+            loadedPDF = null;
+            Logger.Log(ex);
+        }
+        finally
+        {
+            ShowHideLoading = false;
+        }
+    }
+    private async Task ImportPDF()
+    {
+        ShowHideLoading = true;
+        if (loadedPDF == null)
+        {
+            result = new Result(ResultState.Error, "Není vybráno PDF pro import!");
+            ShowHideLoading = false;
+            return;
+        }
+        result = await IFileManager.ImportPDF(Entry, loadedPDF.Name);
+
+        await RefreshData();
+    }
+
+    private bool IsMoreURLs(ItemFile itemFile)
+    {
+        GetURLItem(itemFile);        
+        return ItemToCheck != null && ItemToCheck.TableView != null && ItemToCheck.TableView.Rows.Count > 1;
+    }
+
+    private async Task GetURLItem(ItemFile itemFile)
+    {
+        ItemToCheck = await IFileManager.GetTableURL(Entry.Name, itemFile.FileName);
+    }
+}

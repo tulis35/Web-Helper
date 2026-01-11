@@ -1,0 +1,28 @@
+{
+  "FileName": "gfhghf.json",
+  "Name": "gfhghf",
+  "Items": [
+    {
+      "Text": "ghfhfg",
+      "Rank": 1,
+      "IsChecked": false
+    },
+    {
+      "Text": "fgfghfgfgh",
+      "Rank": 2,
+      "IsChecked": false
+    },
+    {
+      "Text": "gfghfgfhgfh",
+      "Rank": 3,
+      "IsChecked": false
+    },
+    {
+      "Text": "gfgffgfgh",
+      "Rank": 4,
+      "IsChecked": false
+    }
+  ],
+  "FileExt": "json",
+  "IsSaved": false
+}

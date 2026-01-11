@@ -1,0 +1,42 @@
+﻿@page "/logsdetail/{logName}"
+@inherits BasePage
+
+<TitleBar Title="@log.Name" Back="Back"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+
+@if (log == null)
+{
+    <span>Log nenalezen!</span>
+}
+else
+{
+    <div class="MainBody">
+        <textarea class="textfield" disabled>@log.Content</textarea>
+    </div>
+}
+
+@code {
+    [Parameter] public string logName { get; set; }
+    public Log log;
+
+    protected override async Task OnInitializedAsync()
+    {
+        RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        log = await IFileManager.GetLog(logName);
+        ShowHideLoading = false;
+    }
+
+    private void Back()
+    {
+        NavManager.NavigateTo("/logslist");
+    }
+}

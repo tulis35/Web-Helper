@@ -1,0 +1,200 @@
+﻿@page "/copypage"
+@inherits BasePage
+
+<TitleBar Title="Kopírování souborů" Refresh="RefreshData"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+else
+{
+    <ResultDialog @bind-result="@result"></ResultDialog>
+    <div class="MainBody">
+        <span>Kopírovat z:</span>
+        <select class="combo" @onchange="@(e => OnFromChange(e.Value))">
+            <option value="" disabled selected hidden>--Vyber záznam--</option>
+            @foreach (Entry entry in entries)
+            {
+                <option value="@entry.Name">@entry.Name</option>
+            }
+        </select>
+        <div class="tablescroll" style="height: 350px;border-bottom:solid 1.3px lightgray;">
+            <table class="width100p scroll">
+                <thead>
+                    <tr class="table-thead-tr">
+                        <th class="table-td table-td-text">
+                            Název
+                        </th>
+                        <th class="table-td width10p">
+                            Typ
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (copyFromEntry != null)
+                    {
+                        @foreach (var item in copyFromEntry.AllFiles)
+                        {
+                            ItemFile itemFile = new ItemFile(copyFromEntry.Name, item.Key, item.Value);
+                            <tr class="table-tbody-tr clickable @(itemsToCopy.Any(item => item.ItemToCopy.Name == itemFile.Name && item.ItemToCopy.ItemFileType == itemFile.ItemFileType) ? "selected" : "")" @onclick="() => AddItemToCopy(itemFile)">
+                                <td class="table-td table-td-text">
+                                    @itemFile.Name
+                                </td>
+                                <td class="table-td">
+                                    <ItemTypeIcon Type="itemFile.ItemFileType"></ItemTypeIcon>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div> 
+    
+        <span>Kopírovat do:</span>
+        <select class="combo" @onchange="@(e => OnToChange(e.Value))">
+            <option value="" disabled selected hidden>--Vyber záznam--</option>
+            @foreach (Entry entry in entries)
+            {
+                <option value="@entry.Name">@entry.Name</option>
+            }
+        </select>
+        <div class="tablescroll" style="height: 350px;border-bottom:solid 1.3px lightgray;">
+            <table class="width100p scroll">
+                <thead>
+                    <tr class="table-thead-tr">
+                        <th class="table-td table-td-text">
+                            Původní Název
+                        </th>
+                        <th class="table-td table-td-text">
+                            Nový Název
+                        </th>
+                        <th class="table-td width10p">
+                            Typ
+                        </th>
+                        <th class="table-td width10p">
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (itemsToCopy != null)
+                    {
+                        @foreach (CopyItem copyItem in itemsToCopy)
+                        {
+                            <tr class="table-tbody-tr">
+                                <td class="table-td table-td-text">
+                                    @copyItem.ItemToCopy.Name
+                                </td>
+                                <td class="table-td table-td-text">
+                                    @copyItem.NewName
+                                </td>
+                                <td class="table-td">
+                                    <ItemTypeIcon Type="copyItem.ItemToCopy.ItemFileType"></ItemTypeIcon>
+                                </td>
+                                <td class="table-td width10p">
+                                    <RenameBTN RenameVar="@copyItem" T="CopyItem" RenameFce="OpenDialogRename"></RenameBTN>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <button class="btn btn-primary margin5" @onclick="CopyItems">Kopírovat</button>
+    </div>
+    @if (ShowRenameDialog)
+    {
+        <RenameDialog name="@copyItemToRename.NewName" OnClose="OnDialogRenameClose"></RenameDialog>
+    }
+}
+
+@code {
+    private List<Entry> entries = null;
+    private Entry copyFromEntry = null;
+    private Entry copyToEntry = null;
+    private List<CopyItem> itemsToCopy = null;
+    private CopyItem copyItemToRename = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+
+        if (entries == null)
+            entries = await IFileManager.GetEntries();
+
+        copyFromEntry = null;
+        copyToEntry = null;
+
+        itemsToCopy = new List<CopyItem>();
+        ShowHideLoading = false;
+    }
+
+    private void OnFromChange(object returnedEntryName)
+    {
+        copyFromEntry = (Entry)entries.FirstOrDefault(e => e.Name == returnedEntryName.ToString());
+        CheckEntries();
+    }
+
+    private void OnToChange(object returnedEntryName)
+    {
+        copyToEntry = (Entry)entries.FirstOrDefault(e => e.Name == returnedEntryName.ToString());
+        itemsToCopy = new List<CopyItem>();
+        CheckEntries();
+    }
+
+    private bool CheckEntries()
+    {
+        if (copyFromEntry == null || copyToEntry == null)
+            return false;
+        else if (copyFromEntry == copyToEntry)
+        {
+            result = new Result(ResultState.Error, "Záznamy nesmí být stejné!");            
+            return false;
+        }
+        else
+            return true;
+    }
+
+    private async Task AddItemToCopy(ItemFile itemFileToCopy)
+    {
+        if (copyToEntry == null || !CheckEntries())
+            return;
+
+        if (itemsToCopy.Any(item => item.ItemToCopy.Name == itemFileToCopy.Name && item.ItemToCopy.ItemFileType == itemFileToCopy.ItemFileType))
+            itemsToCopy.RemoveAll(item => item.ItemToCopy.Name == itemFileToCopy.Name && item.ItemToCopy.ItemFileType == itemFileToCopy.ItemFileType);
+        else
+            itemsToCopy.Add(new CopyItem(itemFileToCopy, copyToEntry));
+    }
+
+    private async Task CopyItems()
+    {
+        if (CheckEntries() && itemsToCopy.Count > 0)
+        {
+            ShowHideLoading = true;
+            result = await IFileManager.CopyItems(copyToEntry, itemsToCopy);
+            ShowHideLoading = false;
+        }
+    }
+
+    private void OpenDialogRename(CopyItem copyItem)
+    {
+        copyItemToRename = copyItem;
+        ShowRenameDialog = true;
+    }
+
+    private async Task OnDialogRenameClose(string newName)
+    {
+        if (!string.IsNullOrEmpty(newName))
+        {
+            CopyItem copyItem = itemsToCopy.FirstOrDefault(item => item.ItemToCopy.Name == copyItemToRename.ItemToCopy.Name && item.ItemToCopy.ItemFileType == copyItemToRename.ItemToCopy.ItemFileType);
+            copyItem.NewName = newName;
+        }
+        copyItemToRename = null;
+        ShowRenameDialog = false;
+    }
+}

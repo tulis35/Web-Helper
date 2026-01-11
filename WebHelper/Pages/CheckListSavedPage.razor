@@ -1,0 +1,132 @@
+﻿@page "/checklistsavedpage"
+@inherits BasePage
+
+<TitleBar Title="CheckList" Refresh="RefreshData"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+else
+{
+    <ResultDialog @bind-result="@result"></ResultDialog>
+
+    <div class="row MainBody">
+        <div class="col-xl-12 tablescroll">
+            <table class="width100p">
+                <thead>
+                    <tr class="table-thead-tr">
+                        <th class="table-td table-td-text">
+                            Název
+                        </th>
+                        <th class="table-td width10p" colspan="3">
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (checklists == null || checklists.Count == 0)
+                    {
+                        <tr class="table-tbody-tr">
+                            <td colspan="5" class="table-td table-td-text">Žádné záznamy nenalezany!</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (Checklist checklist in checklists)
+                        {
+                            <tr class="table-tbody-tr">
+                                <td class="table-td table-td-text">
+                                    @checklist.Name
+                                </td>
+                                <td class="table-td width10p">
+                                    <button class="btn btn-primary margin5" @onclick="() => OpenChecklist(checklist.FileName)"><i class="icon-check"></i></button>
+                                </td>
+                                <td class="table-td width10p">
+                                    <RenameBTN RenameVar="@checklist" T="Checklist" RenameFce="OpenDialogRename"></RenameBTN>
+                                </td>
+                                <td class="table-td width10p">
+                                    <DeleteBTN DeleteFce="OpenDialogDelete" DeleteVar="@checklist" T="Checklist"></DeleteBTN>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+    @if (DialogDeleteIsOpen)
+    {
+        <GenericDialog Caption="Smazat záznam"
+                       Message="@DeleteMessage"
+                       OnClose="@OnDialogDeleteClose"
+                       Type="GenericDialog.Category.DeleteNot">
+        </GenericDialog>
+    }
+    @if (ShowRenameDialog)
+    {
+        <RenameDialog name="@ChecklistToRename.Name" OnClose="OnDialogRenameClose"></RenameDialog>
+    }
+}
+
+@code {
+    private List<Checklist> checklists = new List<Checklist>();
+
+    private string newChecklistName = "";
+
+    private Checklist ChecklistToRename = null;
+
+    private string DeleteMessage;
+    private Checklist ChecklistToDelete = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        checklists = await IFileManager.GetChecklists(true);
+        ShowHideLoading = false;
+    }
+
+    private void OpenDialogRename(Checklist checklist)
+    {
+        ChecklistToRename = checklist;
+        ShowRenameDialog = true;
+    }
+    private async Task OnDialogRenameClose(string newName)
+    {
+        if (!string.IsNullOrEmpty(newName))
+        {
+            result = await IFileManager.RenameChecklist(ChecklistToRename, newName);
+            await RefreshData();
+        }
+        ChecklistToRename = null;
+        ShowRenameDialog = false;
+    }
+
+    private void OpenDialogDelete(Checklist item)
+    {
+        DialogDeleteIsOpen = true;
+        DeleteMessage = "Smazat záznam \"" + item.Name + "\"?";
+        ChecklistToDelete = item;
+    }
+    private async Task OnDialogDeleteClose(bool isOk)
+    {
+        if (isOk)
+        {
+            result = await IFileManager.DeleteChecklist(ChecklistToDelete);
+            await RefreshData();
+        }
+        ChecklistToDelete = null;
+        DialogDeleteIsOpen = false;
+    }
+
+    private void OpenChecklist(string ChecklistName)
+    {
+        NavManager.NavigateTo("/checklistcheck/" + ChecklistName + "/true");
+    }
+}

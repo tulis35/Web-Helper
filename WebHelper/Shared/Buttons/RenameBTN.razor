@@ -1,0 +1,7 @@
+﻿<button class="btn btn-warning margin5" @onclick="() => RenameFce.InvokeAsync(RenameVar)" title="Přejmenovat"><i class="icon-edit"></i></button>
+
+@code {
+    @typeparam T
+    [Parameter] public EventCallback<T> RenameFce { get; set; }
+    [Parameter] public T RenameVar { get; set; }
+}

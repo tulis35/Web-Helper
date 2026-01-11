@@ -1,0 +1,21 @@
+﻿
+<select class="combo" @onchange="@(x => OnSelChange(x.Value))">
+    <option value="" disabled selected hidden>--Vyber typ--</option>
+    @for (int i = 0; i < Items.Length; i++)
+    {
+        <option value="@i">@Items[i].ToString()</option>
+    }
+</select>
+
+@code {
+    [Parameter] public object[] Items { get; set; }
+    [Parameter] public EventCallback<object> OnClose { get; set; }
+    public object SelectedObject;
+
+    public void OnSelChange(object guidAsString)
+    {
+        SelectedObject = Items[Convert.ToInt32(guidAsString)];
+
+        OnClose.InvokeAsync(SelectedObject);
+    }
+}

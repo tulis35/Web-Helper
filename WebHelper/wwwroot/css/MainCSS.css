@@ -1,0 +1,400 @@
+﻿hr {
+    border-color: lightgray;
+    border-width: 1.3px;
+}
+table {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.table-thead-tr{
+    background-color: lightgray;
+    font-weight:bold;
+    border-width:1.5px;
+    border-style:solid;
+}
+.table-tbody-tr {
+    border-width: 1.5px;
+    border-style: solid;
+
+}
+.table-td {    
+    border-left-style: solid;
+    border-left-width: 1.5px;
+    border-left-color: #979998;    
+    padding: 5px;
+}
+.table-td-text {
+    padding-left: 5px;
+    font-size: 20px;
+    overflow-wrap: break-word;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 500px;
+}
+
+.title{
+    border-bottom-style:solid;
+    border-bottom-width: 2px;
+    border-bottom-color: #979998;
+    
+}
+.title h3 {
+    margin-left: 10px;
+}
+.title-div{
+    position: fixed;
+}
+
+.width100p{
+    width:100%;
+}
+.width90p {
+    width: 90%;
+}
+.width45p {
+    width: 45%;
+}
+.width40p {
+    width: 40%;
+}
+.width20p {
+    width: 20%;
+}
+.width10p {
+    width: 10%;
+}
+.width8p{
+    width:8%;
+}
+.width5p{
+    width: 5%;
+}
+
+.margin5{
+    margin:5px;
+}
+.margin10 {
+    margin: 10px;
+}
+.padding5{
+    padding:5px;
+}
+
+.heightTextArea{
+    height: 10vh;
+}
+
+.roundedcorner25 {
+    border-radius: 1rem;
+    border-collapse: collapse;
+    overflow: hidden;
+}
+.clickable:hover {
+    cursor: pointer;
+    /*opacity: 0.5;*/
+    background-color: #ebebeb;
+}
+.selected {
+    background-color: #f7c068;
+}
+
+.icon-info {
+    background: url(../css/Icons/IconInfo48.png);
+    content: '';
+    display: block;
+    height: 48px;
+    width: 48px;
+    position: relative;
+    top: 0px;
+}
+.icon-success {
+    background: url(../css/Icons/IconSucces48.png);
+    content: '';
+    display: block;
+    height: 48px;
+    width: 48px;
+    position: relative;
+    top: 0px;
+}
+.icon-error {
+    background: url(../css/Icons/IconError48.png);
+    content: '';
+    display: block;
+    height: 48px;
+    width: 48px;
+    position: relative;
+    top: 0px;
+}
+.icon-detail {
+    background: url(../css/Icons/IconDetail32.png);
+    content: '';
+    display: block;
+    height: 32px;
+    width: 32px;
+    position: relative;
+    top: 0px;
+}
+.icon-txt {
+    background: url(../css/Icons/IconTxt32.png);
+    content: '';
+    display: block;
+    height: 32px;
+    width: 32px;
+    position: relative;
+    top: 0px;
+}
+.icon-table {
+    background: url(../css/Icons/IconTable32.png);
+    content: '';
+    display: block;
+    height: 32px;
+    width: 32px;
+    position: relative;
+    top: 0px;
+}
+.icon-image {
+    background: url(../css/Icons/IconImage32.png);
+    content: '';
+    display: block;
+    height: 32px;
+    width: 32px;
+    position: relative;
+    top: 0px;
+}
+.icon-url {
+    background: url(../css/Icons/IconURL32.png);
+    content: '';
+    display: block;
+    height: 32px;
+    width: 32px;
+    position: relative;
+    top: 0px;
+}
+.icon-edit {
+    background: url(../css/Icons/IconEdit32.png);
+    content: '';
+    display: block;
+    height: 32px;
+    width: 32px;
+    position: relative;
+    top: 0px;
+}
+.icon-delete {
+    background: url(../css/Icons/IconDelete32.png);
+    content: '';
+    display: block;
+    height: 32px;
+    width: 32px;
+    position: relative;
+    top: 0px;
+}
+.icon-check {
+    background: url(../css/Icons/IconCheck32.png);
+    content: '';
+    display: block;
+    height: 32px;
+    width: 32px;
+    position: relative;
+    top: 0px;
+}
+.icon-log {
+    background: url(../css/Icons/IconLog32.png);
+    content: '';
+    display: block;
+    height: 32px;
+    width: 32px;
+    position: relative;
+    top: 0px;
+}
+.icon-task {
+    background: url(../css/Icons/IconTask32.png);
+    content: '';
+    display: block;
+    height: 32px;
+    width: 32px;
+    position: relative;
+    top: 0px;
+}
+.icon-pdf {
+    background: url(../css/Icons/IconPDF32.png);
+    content: '';
+    display: block;
+    height: 32px;
+    width: 32px;
+    position: relative;
+    top: 0px;
+}
+.icon-extapp {
+    background: url(../css/Icons/IconExtApp32.png);
+    content: '';
+    display: block;
+    height: 32px;
+    width: 32px;
+    position: relative;
+    top: 0px;
+}
+
+.result {
+    border-style: solid;
+    border-width: 2px;
+}
+.result-success {
+    border-color: #69e083;    
+}
+.result-error {
+    border-color: #f73e3e;
+}
+.result-info {
+    border-color: #aef1fc;
+}
+
+.combo{
+    margin: 5px;
+    border-radius: 5px;
+    height:30px;
+    width: 150px;
+}
+.textfield{
+    border-style: solid;
+    border-width: 2px;
+    border-color: black;
+    border-radius: 5px;
+
+    width:100%;
+    height: 100%;
+    min-height: 500px;
+
+    resize: vertical;
+}
+.checkbox {
+    display: block;
+    position: relative;
+    padding-left: 35px;
+    margin: 12px;
+    cursor: pointer;
+    font-size: 22px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    position: center;
+    top: 0;
+    left: 0;
+    height: 25px;
+    width: 25px;
+    background-color: #eee;
+}
+.inlineCheckbox {
+    position: relative;
+    padding-left: 35px;
+    margin: 12px;
+    cursor: pointer;
+    font-size: 22px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    position: center;
+    top: 0;
+    left: 0;
+    height: 25px;
+    width: 25px;
+    background-color: #eee;
+}
+.tablescroll {
+    overflow-y: auto;
+    height: 86vh;
+    /*height: 70vh;*/
+}
+.tablescroll thead th {
+    position: sticky;
+    top: 0px;
+    background-color: lightgray;
+    font-weight: bold;
+    border-width: 1.5px !important;
+    border-style: solid !important;
+    border-color: black !important;
+    z-index: 9;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+    background-color: #7b7d7f;
+    border: 5px solid #fff;
+    border-radius: 10rem;
+}
+
+.scroll::-webkit-scrollbar-track {
+    position: absolute;
+    right: -3rem;
+    top: -50rem;
+    background: transparent;
+}
+
+/*loading*/
+.overlay {
+    position: fixed; /* Sit on top of the page content */
+    display: none; /* Hidden by default */
+    width: 100%; /* Full width (cover the whole page) */
+    height: 100%; /* Full height (cover the whole page) */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+    z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+    cursor: pointer;
+}
+
+.overlay__inner {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
+
+.overlay__content {
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.spinner {
+    width: 75px;
+    height: 75px;
+    display: inline-block;
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.05);
+    border-top-color: #fff;
+    animation: spin 1s infinite linear;
+    border-radius: 100%;
+    border-style: solid;
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.TitleBarButtons{
+    height: 3.5rem;
+    background-color: lightgray;
+    border-bottom: 1px solid grey;
+}
+.TitleBarButtons button {
+    padding-top: 9px;
+}
+
+.MainBody {
+    padding-left: 2rem !important;
+    margin-right: 15px;
+    /*padding-right: 1.5rem !important;*/
+}
+
+.DisabledRow {
+    background-color: rgb(191, 187, 187);
+    color: white;
+}

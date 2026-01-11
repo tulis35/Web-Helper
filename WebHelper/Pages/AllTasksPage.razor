@@ -1,0 +1,83 @@
+﻿@page "/alltaskspage"
+@inherits BasePage
+
+<TitleBar Title="Úkoly" Refresh="RefreshData"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+else
+{
+    <div class="MainBody">
+        <div class="col-xl-12 tablescroll">
+            <table class="width100p scroll">
+                <thead>
+                    <tr class="table-thead-tr">
+                        <th class="table-td table-td-text width8p">
+                            Detail
+                        </th>
+                        <th class="table-td table-td-text">
+                            Název
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (TasksList == null || TasksList.Count == 0)
+                    {
+                        <tr class="table-tbody-tr">
+                            <td colspan="2" class="table-td table-td-text">Žádné úkoly!</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (ItemFile itemFile in TasksList)
+                        {
+                            int unfinishedTask = UnclopletedTasks(itemFile);
+                            @if (unfinishedTask > 0)
+                            {
+                                <tr class="table-tbody-tr">
+                                    <td class="table-td width8p">
+                                        <button class="btn btn-primary margin5" @onclick="() => OpenDetail(itemFile.FileName)"><i class="icon-detail"></i></button>
+                                    </td>
+                                    <td class="table-td table-td-text">
+                                        @itemFile.Name <span style="color:red;">@($"({unfinishedTask})")</span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+@code {
+    private List<ItemFile> TasksList = new List<ItemFile>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        TasksList = await IFileManager.GetAllTasks();
+        ShowHideLoading = false;
+    }
+    private void OpenDetail(string file)
+    {
+        NavManager.NavigateTo("/taskdetail/" + IFileManager.GetReturnStringForAllTasks() + "/" + file);
+    }
+    private int UnclopletedTasks(ItemFile itemFile)
+    {
+        int number = 0;
+        foreach (DataRow row in itemFile.TableView.Rows)
+            if (!Convert.ToBoolean(row["Completed"]))
+                number++;
+
+        return number;
+
+    }
+}

@@ -1,0 +1,128 @@
+﻿@page "/usersettingspage"
+@inherits BasePage
+
+<TitleBar Title="Nastavení" Refresh="RefreshData" Save="SaveUserSettings"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+else
+{
+    <ResultDialog @bind-result="@result"></ResultDialog>
+
+    <div class="MainBody">
+        <table style="">
+            <tr>
+                <td class="table-td-text" style="font-weight:bold;">
+                    Počet posledních uložených záznamů:
+                </td>
+                <td>
+                    <input type="number" @bind-value="userSettings.NumberOfLastItemsSaved" class="margin5 width40p" min="0"/>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td style="float:left;">
+                    <button class="btn btn-primary margin5" @onclick="ShowFavoriteItems">Editovat oblíbené záznamy</button>
+                </td>
+            </tr>
+            <tr>
+                <td class="table-td-text" style="font-weight:bold;">
+                    Maximální velikost souboru:
+                </td>
+                <td>
+                    <input type="number" @bind-value="userSettings.MaxFileSizeInMB" class="margin5 width40p" min="0"/> MB
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    @if (showFavoriteItemsDialog)
+    {
+        <div class="modal fade show" id="myModal" style="display:block; background-color: rgba(10,10,10,.8);" aria-modal="true" role="dialog">
+            <div class="modal-dialog" style="padding-top:100px;max-width:800px;">
+                <div class="modal-content" style="height:500px;">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Poznámka</h4>
+                        <button type="button" class="close" @onclick="() => showFavoriteItemsDialog = false">
+                            &times;
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="tablescroll" style="height: 25vh;">
+                            <table class="width100p">
+                                <thead>
+                                    <tr>
+                                        <th class="table-td table-td-text">Uložit</th>
+                                        <th class="table-td table-td-text">Záznam</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (UserSettingsItems item in userSettings.FavoriteItems)
+                                    {
+                                        <tr class="table-tbody-tr">
+                                            <td class="table-td" style="width:3%;">
+                                                <input type="checkbox" class="checkbox" @bind="item.Save" />
+                                            </td>
+                                            <td class="table-td" style="width:3%;">
+                                                @item.ShowName()
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" @onclick=@SaveFavoriteItems>
+                            Uložit
+                        </button>
+                        <button type="button" class="btn btn-warning" @onclick="() => showFavoriteItemsDialog = false">
+                            Zrušit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private UserSettings userSettings;
+    private bool showFavoriteItemsDialog = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        userSettings = await IFileManager.GetUserSettings();
+        ShowHideLoading = false;
+    }
+
+    private async Task SaveUserSettings()
+    {
+        ShowHideLoading = true;
+        result = await IFileManager.SaveUserSettings(userSettings);
+        ShowHideLoading = false;
+    }
+
+    private async Task SaveFavoriteItems()
+    {
+        for (int i = userSettings.FavoriteItems.Count - 1; i >= 0; i--)
+        {
+            if (!userSettings.FavoriteItems[i].Save)
+                userSettings.FavoriteItems.RemoveAt(i);
+        }
+        showFavoriteItemsDialog = false;
+    }
+
+    private async Task ShowFavoriteItems()
+    {
+        showFavoriteItemsDialog = true;
+    }
+}

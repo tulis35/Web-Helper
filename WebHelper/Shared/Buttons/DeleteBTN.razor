@@ -1,0 +1,7 @@
+﻿<button class="btn btn-danger margin5" @onclick="() => DeleteFce.InvokeAsync(DeleteVar)" title="Smazat"><i class="icon-delete"></i></button>
+
+@code {
+    @typeparam T
+    [Parameter] public EventCallback<T> DeleteFce { get; set; }
+    [Parameter] public T DeleteVar { get; set; }
+}

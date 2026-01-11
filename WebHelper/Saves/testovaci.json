@@ -1,0 +1,18 @@
+{
+  "Name": "testovaci",
+  "TextFiles": [
+    "t68.txt"
+  ],
+  "TableFiles": [
+    "testovaci t5.xml"
+  ],
+  "URLsFiles": [],
+  "ImagesFiles": [
+    "testovaci order.png",
+    "DWZ LZ.png"
+  ],
+  "TasksFiles": [],
+  "PDFsFiles": [
+    "Li\u0301stky.pdf"
+  ]
+}

@@ -1,0 +1,123 @@
+﻿@page "/infopage"
+@inherits BasePage
+
+<TitleBar Title="Info" Refresh="RefreshData"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+else
+{
+    <ResultDialog @bind-result="@result"></ResultDialog>
+    <div class="MainBody">
+        <table style="">
+            <tr>
+                <td class="table-td-text" style="@TextHeaderStyle">
+                    Verze:
+                </td>
+                <td class="table-td-text" style="@TextValuesStyle">
+                    @appState.ActualVersion
+                </td>                
+            </tr>
+            <tr>
+                <td class="table-td-text" style="@TextHeaderStyle">
+                    Umístění:
+                </td>
+                <td class="table-td-text" style="@TextValuesStyle">
+                    @appState.CurrentDirectory
+                </td>                
+            </tr>
+            <tr>
+                <td class="table-td-text" style="@TextHeaderStyle">
+                    Celková velikost dat:
+                </td>
+                <td class="table-td-text" style="@TextValuesStyle">
+                    @appState.AllDataSize_Display
+                </td>
+            </tr>
+            <tr>
+                <td class="table-td-text" style="@TextHeaderStyle">
+                    Celková velikost logů:
+                </td>
+                <td class="table-td-text" style="@TextValuesStyle">
+                    @appState.AllLogsSize_Display
+                </td>
+            </tr>
+        </table>
+        <div class="tablescroll" style="height: 70vh;">
+            <table class="width100p">
+                <thead>
+                    <tr class="">
+                        <th class="table-td table-td-text">
+                            Záznam
+                        </th>
+                        <th class="table-td table-td-text">
+                            Uložen v
+                        </th>
+                        <th class="table-td table-td-text">
+                            Celková velikost
+                        </th>
+                        <th class="table-td table-td-text">
+                            Počet souborů
+                        </th>
+                        <th class="table-td table-td-text">
+                            Největší soubor
+                        </th>
+                    </tr>
+                </thead>
+                <tbody >
+                    @if (appState.DataShow.Rows.Count == 0)
+                    {
+                        <tr class="table-tbody-tr">
+                            <td colspan="4" class="table-td table-td-text">Žádné záznamy nenalezany!</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach(DataRow dataRow in appState.DataShow.Rows)
+                        {
+                            <tr class="table-tbody-tr">
+                                <td class="table-td table-td-text">
+                                    @dataRow["FileName"]
+                                </td>
+                                <td class="table-td table-td-text">
+                                    @dataRow["Folder"]
+                                </td>
+                                <td class="table-td">
+                                    @dataRow["AllSize_Display"]
+                                </td>
+                                <td class="table-td" style="@((int)@dataRow["ChildCount"] == 0 ? EmptyTd : string.Empty)">
+                                    @((int)@dataRow["ChildCount"] == 0 ? null : (int)@dataRow["ChildCount"])
+                                </td>
+                                <td class="table-td table-td-text" style="@((int)@dataRow["ChildCount"] == 0 ? EmptyTd : string.Empty)">
+                                    @((int)@dataRow["ChildCount"] == 0 ? null : @dataRow["BiggestFile"])
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>    
+}
+
+@code {
+    private AppState appState;
+    private string TextHeaderStyle = "font-weight:bold;";
+    private string TextValuesStyle = "font-style: italic;color: grey;";
+    private string EmptyTd = "background-color: rgb(191, 187, 187);";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        appState = new AppState();
+        appState.LoadDataSizes();
+        ShowHideLoading = false;
+    }
+}

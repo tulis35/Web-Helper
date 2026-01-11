@@ -1,0 +1,89 @@
+﻿@page "/logslist"
+@inherits BasePage
+
+<TitleBar Title="Logy" Refresh="RefreshData"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+
+<div class="tablescroll MainBody">
+    <table class="width100p scroll">
+        <thead>
+            <tr class="table-thead-tr">
+                <th class="table-td width5p">
+                    Detail
+                </th>
+                <th class="table-td width5p">
+                    Typ
+                </th>
+                <th class="table-td">
+                    Název
+                </th>
+                <th class="table-td width10p">
+                    Vytvořeno
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @if(logs == null)
+            {
+                <tr class="table-tbody-tr">
+                    <td colspan="4" class="table-td table-td-text">
+                        Žádné logy nenalezeny!
+                    </td>
+                </tr>
+            }
+            else
+            {
+                @foreach(Log log in logs)
+                {
+                    <tr class="table-tbody-tr">
+                        <td class="table-td width5p">
+                            <DetailBTN DetailParam="@log" T="Log" DetailFce="OpenDetail"></DetailBTN>
+                        </td>
+                        <td class="table-td">
+                            @switch (log.LogLevel)
+                            {
+                                case LogLevel.Error:
+                                    <i class="icon-error margin5"></i>
+                                    break;
+                                case LogLevel.Info:
+                                    <i class="icon-info margin5"></i>
+                                    break;
+                            }
+                        </td>
+                        <td class="table-td table-td-text">
+                            @log.Name
+                        </td>
+                        <td class="table-td">
+                            @log.Created.ToString("dd.MM.yyyy")
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    public List<Log> logs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        logs = await IFileManager.GetLogs();
+        ShowHideLoading = false;
+    }
+
+    private void OpenDetail(Log log)
+    {
+        NavManager.NavigateTo("/logsdetail/" + log.FileName);
+    }
+}

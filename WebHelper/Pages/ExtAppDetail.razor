@@ -1,0 +1,87 @@
+﻿@page "/extappdetail/{itemname}/{filename}"
+@inherits BasePage
+
+<TitleBar Title="@ItemFile.Name" Back="Back" Save="Save" UnSavedChanges="AreChanges" AddToFavorite="AddToFavorites"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+
+@if (ItemFile == null)
+{
+    <h3 class="" style="font-style:italic; color:lightgray;">Záznam nenalezen!</h3>
+}
+else
+{
+    <ResultDialog @bind-result="@result"></ResultDialog>
+    <div class="MainBody">
+        <div>
+            <span style="font-weight:bold;">Cesta k souboru:</span>
+            <input type="text" value="@ItemFile.ExtAppSettings.AppPath" class="margin5 width100p" @onchange="p => PathChange(p.Value.ToString())"/>
+        </div>
+        <div>
+            <span style="font-weight:bold;">Argumenty:</span>
+            <input type="text" value="@ItemFile.ExtAppSettings.Arguments" class="margin5 width100p" @onchange="a => ArgumentsChange(a.Value.ToString())" />
+        </div>
+        <button class="btn btn-primary margin5" @onclick="StartApp">Spustit</button>
+    </div>
+}
+
+@code {
+    [Parameter] public string FileName { get; set; }
+    [Parameter] public string ItemName { get; set; }
+    private ItemFile ItemFile;
+
+    private bool AreChanges = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+    private void Back()
+    {
+        NavManager.NavigateTo("/entrydetail/" + ItemName);
+    }
+
+    private async Task Save()
+    {
+        ShowHideLoading = true;
+        result = await IFileManager.SaveExtApp(ItemFile);
+
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        ItemFile = await IFileManager.GetExtApp(ItemName, FileName);
+        await IFileManager.AddLastShownItem(ItemName, ItemFile);
+        ShowHideLoading = false;
+        AreChanges = false;
+    }
+
+    private async Task AddToFavorites()
+    {
+        ShowHideLoading = true;
+        result = await IFileManager.AddFavorite(ItemName, ItemFile);
+        ShowHideLoading = false;
+    }
+
+    private void PathChange(string v)
+    {
+        ItemFile.ExtAppSettings.AppPath = v;
+        AreChanges = true;
+    }
+
+    private void ArgumentsChange(string v)
+    {
+        ItemFile.ExtAppSettings.Arguments = v;
+        AreChanges = true;
+    }
+
+    private void StartApp()
+    {
+        IFileManager.ExtAppStart(ItemFile);
+    }
+}

@@ -1,0 +1,191 @@
+﻿@page "/importpage"
+@implements IDisposable;
+
+<h3 class="title">Import</h3>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+<ResultStatusBar @bind-result="@result"></ResultStatusBar>
+
+<div>
+    <span class="margin5">Nahrát soubor:</span>
+    <div class="margin5">
+        <InputFile OnChange="@LoadFiles"></InputFile>
+    </div>
+</div>
+<div>
+    <button class="btn btn-primary margin5" @onclick="LoadImport">Načíst soubor</button>
+</div>
+@if(import != null)
+{
+    <div>
+        <span style="font-weight:bold">Verze importu:</span><span style="font-style: italic;color: @importVersionColor;" title="@VersionTitle"> @import.Version</span>
+        <button class="btn btn-primary margin5" @onclick="Import">Importovat vybrané</button>
+        <table class="width100p">
+            <thead>
+                <tr class="table-thead-tr">
+                    <td class="table-td table-td-text width8p">
+                        Importovat
+                    </td>
+                    <td class="table-td table-td-text">
+                        Název souboru
+                    </td>
+                    <td class="table-td width8p">
+                        Typ
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                @if (import.ImportItems.Count > 0)
+                {
+                    @foreach (ImportItem importItem in import.ImportItems)
+                    {
+                        <tr class="table-tbody-tr">
+                            <td class="table-td width8p" rowspan="2">
+                                <input @bind-value="@importItem.ToImport" type="checkbox" class="inlineCheckbox" />
+                            </td>
+                            <td class="table-td table-td-text">
+                                @importItem.ItemName
+                            </td>
+                            <td class="table-td">
+                                @switch (importItem.ItemType)
+                                {
+                                    case 0:
+                                        <i class="icon-txt margin5" title="Text"></i>
+                                        break;
+                                    case 1:
+                                        <i class="icon-table margin5" title="Tabulka"></i>
+                                        break;
+                                    case 2:
+                                        <i class="icon-image margin5" title="Obrázek"></i>
+                                        break;
+                                    case 3:
+                                        <i class="icon-url margin5" title="URL Tabulka"></i>
+                                        break;
+                                    case -1:
+                                        <i class="icon-check margin5" title="Checklist"></i>
+                                        break;
+                                    case -2:
+                                        <i class="icon-log margin5" title="Log"></i>
+                                        break;
+                                }
+                            </td>
+                        </tr>
+                        <tr class="table-tbody-tr">
+                            <td class="table-td table-td-text" colspan="2" style="color:red; font-style:italic;">
+                                @importItem.ErrorMsg
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+
+@code {
+    private bool ShowHideLoading = false;
+    IBrowserFile loadedFile = null;
+    private Result result = null;
+    private ImportExport import = null;
+    string importVersionColor = "grey";
+    private string VersionTitle => importVersionColor == "red" ? "Odlišná verze importu!" : null;
+
+    private async Task LoadFiles(InputFileChangeEventArgs e)
+    {
+        ShowHideLoading = true;
+
+        loadedFile = null;
+
+        try
+        {
+            loadedFile = e.File;
+
+            if (!loadedFile.Name.Contains(".zip"))
+            {
+                result = new Result(ResultState.Error, "Nepovolený typ souboru!");
+                ShowHideLoading = false;
+                loadedFile = null;
+                return;
+            }
+
+            var path = Path.Combine(Environment.ContentRootPath, FileManager.TmpFolder, loadedFile.Name);
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await loadedFile.OpenReadStream().CopyToAsync(fs);
+        }
+        catch (Exception ex)
+        {
+            result = new Result(ResultState.Error, "Načtení obrázku selhalo." + "\r\n" + ex.Message);
+            loadedFile = null;
+            Logger.Log(ex);
+        }
+        finally
+        {
+            ShowHideLoading = false;
+        }        
+    }
+
+    private async Task LoadImport()
+    {
+        ShowHideLoading = true;
+        try
+        {
+            if (loadedFile == null)
+            {
+                result = new Result(ResultState.Error, "Není vybrát soubor!");
+                ShowHideLoading = false;
+                return;
+            }
+
+            import = await IFileManager.LoadImport(loadedFile.Name);
+
+            AppState appState = new AppState();
+            if (appState.ActualVersion != import.Version)
+                importVersionColor = "red";
+
+            ShowHideLoading = false;
+        }
+        catch(Exception ex)
+        {
+            result = new Result(ResultState.Error, "Načtení importu selhalo." + "\r\n" + ex.Message);
+            Logger.Log(ex);
+            ShowHideLoading = false;
+        }
+    }
+
+    public async void Dispose()
+    {
+        if (loadedFile != null && !string.IsNullOrEmpty(loadedFile.Name))
+        {
+            await IFileManager.ClearTmpFile(loadedFile.Name);
+        }
+    }
+
+    private async Task Import()
+    {
+        if (import.ImportItems.Count == 0)
+            return;
+
+        try
+        {
+            ShowHideLoading = true;
+            for(int i = 0; i < import.ImportItems.Count; i++)
+            {
+                ImportItem importItem = import.ImportItems[i];
+                if (!importItem.ToImport)
+                    import.ImportItems.Remove(importItem);
+            }
+
+            ShowHideLoading = false;
+        }catch(Exception ex)
+        {
+            result = new Result(ResultState.Error, "Import selhal." + "\r\n" + ex.Message);
+            Logger.Log(ex);
+            ShowHideLoading = false;
+        }
+    }
+}

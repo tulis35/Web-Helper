@@ -1,0 +1,50 @@
+﻿<div style="width:100%;">
+    <div class="TitleBarButtons">
+        @if (Back.HasDelegate)
+        {
+            <button class="btn btn-primary margin5" @onclick="Back" title="Zpět"><span class="oi oi-arrow-thick-left" aria-hidden="true"></span></button>
+        }
+        @if (Refresh.HasDelegate)
+        {
+            <button class="btn btn-primary margin5" @onclick="Refresh" title="Načíst"><span class="oi oi-reload" aria-hidden="true"></span></button>
+        }
+        @if (Save.HasDelegate)
+        {
+            <button class="btn btn-primary margin5" @onclick="Save" title="Uložit"><span class="oi oi-data-transfer-download" aria-hidden="true"></span></button>
+        }
+        @if(AddNote.HasDelegate)
+        {
+            <button class="btn @(IsNote ? "btn-warning" : "btn-secondary") margin5" @onclick="AddNote" title="Poznámka"><span class="oi oi-comment-square" aria-hidden="true"></span></button>
+        }
+        @if (AddToFavorite.HasDelegate)
+        {
+            <button class="btn btn-warning margin5" @onclick="AddToFavorite" title="Přidat do oblíbených"><span class="oi oi-pin" aria-hidden="true"></span></button>
+        }
+        <div style="float:right;margin-right:50%;">
+            <h3 style="margin:10px 5px 5px 5px;font-style:italic;color:@(UnSavedChanges ? "red" : "black");font-weight:bold;">@Title</h3>
+        </div>
+    </div>
+    @* <div class="title">
+        <h3 style="margin-top:5px;font-style:italic;color:@(UnSavedChanges ? "red" : "black")">@Title</h3>
+    </div> *@
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback Back { get; set; } 
+    [Parameter]
+    public EventCallback Refresh { get; set; } 
+    [Parameter]
+    public EventCallback Save { get; set; }
+    [Parameter] 
+    public string Title { get; set; }
+    [Parameter]
+    public bool UnSavedChanges { get; set; }
+    [Parameter]
+    public EventCallback AddNote { get; set; }
+    [Parameter]
+    public bool IsNote { get; set; }
+    [Parameter]
+    public EventCallback AddToFavorite { get; set; }
+}
+

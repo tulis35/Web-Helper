@@ -1,0 +1,253 @@
+﻿@page "/entrylist"
+@inherits BasePage
+
+<TitleBar Title="Seznam" Refresh="RefreshData"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+else
+{
+    <ResultDialog @bind-result="@result"></ResultDialog>
+
+    <div class="row MainBody">
+        <div class="col-xl-6 tablescroll">
+            <table class="width100p scroll">
+                <thead>
+                    <tr class="table-thead-tr">
+                        <th class="table-td table-td-text width8p">
+                            Detail
+                        </th>
+                        <th class="table-td table-td-text">
+                            Název
+                        </th>
+                        <th class="table-td width10p" colspan="2">
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (entriesList == null || entriesList.Count == 0)
+                    {
+                        <tr class="table-tbody-tr">
+                            <td colspan="4" class="table-td table-td-text">Žádné záznamy nenalezany!</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (Entry item in entriesList)
+                        {
+                            <tr class="table-tbody-tr">
+                                <td class="table-td width8p">
+                                    <DetailBTN DetailParam="@item.Name" T="String" DetailFce="OpenDetail"></DetailBTN>
+                                </td>
+                                <td class="table-td table-td-text">
+                                    @item.Name
+                                </td>
+                                <td class="table-td width10p">
+                                    <RenameBTN RenameVar="@item" T="Entry" RenameFce="OpenDialogRename"></RenameBTN>
+                                </td>
+                                <td class="table-td width10p">
+                                    <DeleteBTN DeleteFce="OpenDialogDelete" DeleteVar="@item.Name" T="String"></DeleteBTN>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+
+        </div>
+        <div class="col-xl-6">
+            <div>
+                <div class="width100p title margin5 font-weight-bold">
+                    <span class="">Nový:</span>
+                </div>
+                <div class="margin5">
+                    <input type="text" @bind-value="newItemName" placeholder="Název..." class="width100p" maxlength="50" />
+                </div>
+                <div class="row" style="margin-left:1px;">
+                    <button class="btn btn-primary margin5" @onclick="CreateNew">Vytvořit</button>
+                    <button class="btn btn-primary margin5" @onclick="CreateAndOpenNew">Vytvořit a Otevřít</button>
+                </div>
+                <hr />
+                @if(Settings != null)
+                {
+                    @if(Settings.FavoriteItems.Count > 0)
+                    {
+                        <div class="width100p title margin5 clickable font-weight-bold" @onclick="() => ShowFavorites = !ShowFavorites">
+                            <span class="">Oblíbené:</span>
+                        </div>
+                        @if (ShowFavorites){
+                            <div class="tablescroll" style="height: 25vh;">
+                                <table class="width100p">
+                                    <thead>
+                                        <tr>
+                                            <th class="table-td table-td-text width8p">Detail</th>
+                                            <th class="table-td table-td-text">Záznam</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (UserSettingsItems item in Settings.FavoriteItems)
+                                        {
+                                            <tr class="table-tbody-tr">
+                                                <td class="table-td width8p">
+                                                    <button class="btn btn-primary margin5" @onclick="() => OpenFavoriteLastDetail(item.IsShortCut ? IFileManager.GetReturnStringForAllTasks() : item.EntryName, item.ItemFileName, item.ItemFileType)"><i class="icon-detail"></i></button>
+                                                </td>
+                                                <td class="table-td">
+                                                    @item.ShowName()
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    }
+                    <hr />
+                    @if(Settings.LastShownItems.Count > 0)
+                    {
+                        <div class="width100p title margin5 clickable font-weight-bold" @onclick="() => ShowLastOpen = !ShowLastOpen">
+                            <span class="">Poslední otevřené:</span>
+                        </div>
+                        @if (ShowLastOpen)
+                        {
+                            <div class="tablescroll" style="height: 25vh;">
+                                <table class="width100p">
+                                    <thead>
+                                        <tr>
+                                            <th class="table-td table-td-text width8p">Detail</th>
+                                            <th class="table-td table-td-text">Záznam</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (UserSettingsItems item in Settings.LastShownItems)
+                                        {
+                                            <tr class="table-tbody-tr">
+                                                <td class="table-td width8p">
+                                                    <button class="btn btn-primary margin5" @onclick="() => OpenFavoriteLastDetail(item.IsShortCut ? IFileManager.GetReturnStringForAllTasks() : item.EntryName, item.ItemFileName, item.ItemFileType)"><i class="icon-detail"></i></button>
+                                                </td>
+                                                <td class="table-td">
+                                                    @item.ShowName()
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (DialogDeleteIsOpen)
+    {
+        <GenericDialog Caption="Smazat záznam"
+        Message="@DeleteMessage"
+        OnClose="@OnDialogDeleteClose"
+        Type="GenericDialog.Category.DeleteNot">
+        </GenericDialog>
+    }
+    @if (ShowRenameDialog)
+    {
+        <RenameDialog name="@EntryToRename.Name" OnClose="OnDialogRenameClose"></RenameDialog>
+    }
+}
+
+
+
+@code {
+    private List<Entry> entriesList = new List<Entry>();
+    private string newItemName { get; set; }
+
+    private string DeleteMessage;    
+    private string ItemToDelete;
+
+    private Entry EntryToRename = null;
+
+    private UserSettings Settings = null;
+    private bool ShowFavorites = false;
+    private bool ShowLastOpen = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        RefreshData();
+    }
+
+    private async Task CreateNew()
+    {
+        ShowHideLoading = true;
+        result = await IFileManager.CreateNewEntry(newItemName);
+
+        newItemName = "";
+
+        await RefreshData();
+    }
+
+    private async Task CreateAndOpenNew()
+    {
+        ShowHideLoading = true;
+        result = await IFileManager.CreateNewEntry(newItemName);
+
+        if (result.ResultState == ResultState.Success)
+            OpenDetail(newItemName);
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        entriesList = await IFileManager.GetEntries();
+        Settings = await IFileManager.GetUserSettings();
+        ShowHideLoading = false;
+    }
+
+    private void OpenDialogDelete(string item)
+    {
+        DialogDeleteIsOpen = true;
+        DeleteMessage = "Smazat záznam \"" + item + "\"?";
+        ItemToDelete = item;
+    }
+    private async Task OnDialogDeleteClose(bool isOk)
+    {
+        if (isOk)
+        {
+            result = await IFileManager.DeleteEntry(ItemToDelete);
+            await RefreshData();
+        }
+        ItemToDelete = "";
+        DialogDeleteIsOpen = false;
+    }
+
+    private void HideResult()
+    {
+        result = null;
+    }
+
+    private void OpenDetail(string item)
+    {
+        NavManager.NavigateTo("/entrydetail/" + item);
+    }
+
+    private void OpenDialogRename(Entry entry)
+    {
+        EntryToRename = entry;
+        ShowRenameDialog = true;
+    }
+
+    private async Task OnDialogRenameClose(string newName)
+    {
+        if (!string.IsNullOrEmpty(newName))
+        {
+            result = await IFileManager.RenameEntry(EntryToRename, newName);
+            await RefreshData();
+        }
+        EntryToRename = null;
+        ShowRenameDialog = false;
+    }
+
+    private void OpenFavoriteLastDetail(string entryName, string file, ItemFileType itemFileType)
+    {
+        NavManager.NavigateTo(ItemFile.DetailPath(entryName, file, itemFileType));
+    }
+}

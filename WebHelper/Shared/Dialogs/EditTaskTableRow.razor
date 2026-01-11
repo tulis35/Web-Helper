@@ -1,0 +1,67 @@
+﻿<div class="modal fade show" id="myModal" style="display:block; background-color: rgba(10,10,10,.8);" aria-modal="true" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Editace</h4>
+                <button type="button" class="close"
+                        @onclick="@Cancel">
+                    &times;
+                </button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <p style="margin-bottom:0.3rem;">Text:</p>
+                </div>
+                <div>
+                    <textarea type="text" @bind="text" class="width100p heightTextArea" ></textarea>
+                </div>
+                <div>
+                    <p style="margin-bottom:0.3rem;margin-top:1.2rem">Vyřešit do:</p>
+                </div>
+                <div>
+                    <input type="datetime-local" class="width100p margin5" @bind="time">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary"
+                        @onclick=@Ok>
+                    Uložit
+                </button>
+                <button type="button" class="btn btn-warning"
+                        @onclick="@Cancel">
+                    Zrušit
+                </button>
+
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    [Parameter] public EventCallback<DataRow> OnClose { get; set; }
+    [Parameter] public DataRow RowToEdit { get; set; }
+
+    private string text;
+    private DateTime time;
+
+    protected override async Task OnInitializedAsync()
+    {
+        text = RowToEdit["Text"].ToString();
+        time = Convert.ToDateTime(RowToEdit["CompleteTo"]);
+    }
+
+    private Task Cancel()
+    {
+        text = "";
+        return OnClose.InvokeAsync(null);
+    }
+    private Task Ok()
+    {
+        RowToEdit["Text"] = text;
+        RowToEdit["CompleteTo"] = time;
+
+        text = "";
+
+        return OnClose.InvokeAsync(RowToEdit);
+    }
+
+}

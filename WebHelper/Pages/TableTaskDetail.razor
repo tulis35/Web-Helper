@@ -1,0 +1,225 @@
+﻿@page "/taskdetail/{itemname}/{filename}"
+@inherits BasePage
+
+<TitleBar Title="@ItemFile.Name" Back="Back" Save="Save" UnSavedChanges="AreChanges" AddToFavorite="AddToFavorites"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+
+@if (ItemFile == null)
+{
+    <h3 class="" style="font-style:italic; color:lightgray;">Záznam nenalezen!</h3>
+}
+else
+{
+    <ResultDialog @bind-result="@result"></ResultDialog>
+    <div class="row MainBody">
+        <div class="col-xl-8 tablescroll">
+            <table class="width100p">
+                <thead>
+                    <tr class="table-thead-tr">
+                        <th class="table-td table-td-text">
+                            Text
+                        </th>
+                        <th class="table-td table-td-text width10p">
+                            Vyřešit do
+                        </th>
+                        @if (ShowCompleted) 
+                        {
+                            <th class="table-td table-td-text width10p">
+                                Vyřešeno
+                            </th>
+                        }
+                        <th class="table-td width10p" colspan="3">
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (DataRow row in ItemFile.TableView.Rows)
+                    {
+                        if (ShowCompleted || !Convert.ToBoolean(row["Completed"]))
+                        {
+                            <tr class="table-tbody-tr @(Convert.ToBoolean(row["Completed"]) ? "DisabledRow" : string.Empty)">
+                                <td class="table-td table-td-text w-75">
+                                    @row["Text"]
+                                </td>
+                                <td class="table-td">
+                                    @row["CompleteTo"]
+                                </td>
+                                @if (ShowCompleted)
+                                {
+                                    <td class="table-td">
+                                            @(Convert.ToDateTime(row["CompletedTime"]) == DateTime.MinValue ? string.Empty : row["CompletedTime"])
+                                    </td>
+                                }
+                                <td class="table-td">
+                                    <button class="btn btn-warning margin5" @onclick="() => OpenEditDialog(row)" title="Editovat" disabled="@Convert.ToBoolean(row["Completed"])"><i class="icon32 icon-edit"></i></button>
+                                </td>
+                                <td class="table-td">
+                                    <button class="btn btn-danger margin5" @onclick="() => OpenDialogDelete(row)" title="Smazat" disabled="@Convert.ToBoolean(row["Completed"])"><i class="icon32 icon-delete"></i></button>
+                                </td>
+                                <td class="table-td">
+                                    <button class="btn btn-primary margin5" @onclick="() => TaskDone(ItemFile.TableView.Rows.IndexOf(row))" title="Vyřešen" disabled="@Convert.ToBoolean(row["Completed"])"><i class="icon32 icon-check"></i></button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-xl-4">
+            <span style="font-weight:bold;">Zobrazit vyřešené:</span> <input type="checkbox" class="margin5 checkbox" @bind="ShowCompleted">
+            <hr />
+            <div>
+                Vyřešit do:<input type="datetime-local" class="width100p margin5" @bind="NewCompleteTo">
+            </div>
+            <div>
+                Text:
+            </div>
+            <textarea @bind="NewText" placeholder="Text..." class="width100p margin5 heightTextArea"></textarea>
+            <div>
+                <button class="btn btn-primary" @onclick="AddRow">Přidat</button>
+            </div>
+        </div>
+    </div>
+
+    @if (DialogDeleteIsOpen)
+    {
+        <GenericDialog Caption="Smazat záznam"
+                       Message="@DeleteMessage"
+                       OnClose="@DeleteItem"
+                       Type="GenericDialog.Category.DeleteNot">
+        </GenericDialog>
+    }@if (ShowHideEditDialog)
+    {
+        <EditTaskTableRow OnClose="EditRow" RowToEdit="RowToEdit"></EditTaskTableRow>
+    }
+}
+@code {
+    [Parameter] public string FileName { get; set; }
+    [Parameter] public string ItemName { get; set; }
+    private ItemFile ItemFile;
+
+    private string NewText = "";
+    private DateTime NewCompleteTo = DateTime.Now.AddMonths(1);
+
+    private bool ShowHideEditDialog = false;
+    private DataRow RowToEdit = null;
+    private int EditRowIndex = -1;
+    private string DeleteMessage = "";
+    private DataRow RowToDelete = null;
+
+    private bool ShowCompleted = false;
+
+    private bool AreChanges = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+
+    private void Back()
+    {
+        if (ItemName == IFileManager.GetReturnStringForAllTasks())
+            NavManager.NavigateTo("/alltaskspage");
+        else
+            NavManager.NavigateTo("/entrydetail/" + ItemName);
+    }
+
+    private async Task Save()
+    {
+        ShowHideLoading = true;
+        result = await IFileManager.SaveTableTask(ItemFile);
+
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        ItemFile = await IFileManager.GetTableTask(ItemName, FileName);
+        await IFileManager.AddLastShownItem(ItemName, ItemFile);
+        ShowHideLoading = false;
+        AreChanges = false;
+    }
+
+    private void OpenDialogDelete(DataRow row)
+    {
+        DialogDeleteIsOpen = true;
+        DeleteMessage = "Smazat tento záznam?";
+        RowToDelete = row;
+    }
+    private async Task DeleteItem(bool IsOK)
+    {
+        if (IsOK)
+        {
+            ItemFile.TableView.Rows.Remove(RowToDelete);
+
+            RowToDelete = null;
+
+            AreChanges = true;
+        }
+        DialogDeleteIsOpen = false;
+    }
+
+    private void OpenEditDialog(DataRow dr)
+    {
+
+        RowToEdit = dr;
+        EditRowIndex = ItemFile.TableView.Rows.IndexOf(dr);
+        ShowHideEditDialog = true;
+    }
+    private async Task EditRow(DataRow dr)
+    {
+        if (dr != null)
+        {
+            DataRow row = ItemFile.TableView.Rows[EditRowIndex];
+            row["Text"] = dr["Text"];
+            row["CompleteTo"] = dr["CompleteTo"];
+            ItemFile.TableView.AcceptChanges();
+
+            AreChanges = true;
+        }
+        EditRowIndex = -1;
+        ShowHideEditDialog = false;
+    }
+
+    private void AddRow()
+    {
+        if (string.IsNullOrEmpty(NewText))
+        {
+            result = new Result(ResultState.Error, "Text musí být vyplněn!");
+            return;
+        }
+
+        DataRow newRow = ItemFile.TableView.NewRow();
+        newRow["Text"] = NewText;
+        newRow["CompleteTo"] = NewCompleteTo;
+        newRow["Completed"] = false;
+        newRow["CompletedTime"] = DateTime.MinValue;
+        ItemFile.TableView.Rows.Add(newRow);
+
+        NewText = "";
+
+        AreChanges = true;
+    }
+
+    private void TaskDone(int index)
+    {
+        DataRow row = ItemFile.TableView.Rows[index];
+        row["Completed"] = true;
+        row["CompletedTime"] = DateTime.Now;
+        ItemFile.TableView.AcceptChanges();
+
+        AreChanges = true;
+    }
+
+    private async Task AddToFavorites()
+    {
+        ShowHideLoading = true;
+        result = await IFileManager.AddFavorite(ItemName, ItemFile);
+        ShowHideLoading = false;
+    }
+}

@@ -1,0 +1,154 @@
+﻿@page "/exportpage"
+
+<h3 class="title">Export</h3>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+else
+{
+    <ResultStatusBar @bind-result="@result"></ResultStatusBar>
+
+    <table class="margin5">
+        <tr class="">
+            <td class="table-td-text">
+                Načíst:
+            </td>
+            <td class="table-td-text">
+                <input type="checkbox" @bind="loadItems" class="inlineCheckbox" /> <span class="">Záznamy</span>
+            </td>
+            <td class="table-td-text">
+                <input type="checkbox" @bind="loadChecklists" class="inlineCheckbox" /> <span class="">Checklisty</span>
+            </td>
+            <td class=" table-td-text">
+                <input type="checkbox" @bind="loadLogs" class="inlineCheckbox" /> <span class="">Logy</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="table-td-text">
+                Název exportu:
+            </td>
+            <td colspan="3">
+                <input type="text" @bind="ExportFileName" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <button class="btn btn-primary margin5" @onclick="RefreshData">Refresh</button>
+            </td>
+            <td>
+                <button class="btn btn-primary margin5" @onclick="Export">Export</button>
+            </td>
+        </tr>
+    </table>
+    <table class="width100p">
+        <thead>
+            <tr class="table-thead-tr">
+                <th class="table-td table-td-text width8p">
+                    Vybrat
+                </th>
+                <th class="table-td table-td-text">
+                    Název
+                </th>
+                <th class="table-td table-td-text">
+                    Typ
+                </th>
+                <th class="table-td table-td-text">
+                    Patří pod
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (listForExport != null && listForExport.Count > 0)
+            {
+                @foreach (ExportItem ext in listForExport)
+                {
+                    <tr class="table-tbody-tr">
+                        <td class="table-td width10p">
+                            <input @bind-value="@ext.ToExport" type="checkbox" class="inlineCheckbox" />
+                        </td>
+                        <td class="table-td table-td-text">
+                            @ext.ItemName
+                        </td>
+                        <td class="table-td">
+                            @switch ((Int16)ext.ItemType)
+                            {
+                                case 0:
+                                    <i class="icon-txt margin5" title="Text"></i>
+                                    break;
+                                case 1:
+                                    <i class="icon-table margin5" title="Tabulka"></i>
+                                    break;
+                                case 2:
+                                    <i class="icon-image margin5" title="Obrázek"></i>
+                                    break;
+                                case 3:
+                                    <i class="icon-url margin5" title="URL Tabulka"></i>
+                                    break;
+                                case -1:
+                                    <i class="icon-check margin5" title="Checklist"></i>
+                                    break;
+                                case -2:
+                                    <i class="icon-log margin5" title="Log"></i>
+                                    break;
+                            }
+                        </td>
+                        <td class="table-td table-td-text">
+                            @ext.ItemParent
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private bool ShowHideLoading = false;
+    private List<ExportItem> listForExport = null;
+
+    private bool loadItems = true;
+    private bool loadChecklists = true;
+    private bool loadLogs = false;
+
+    private Result result = null;
+
+    private static string defExportFileName = "WebHelperExport";
+    private string ExportFileName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        //await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        listForExport = await IFileManager.GetFilesForExport(loadItems, loadChecklists, loadLogs);
+        ShowHideLoading = false;
+    }
+    private async Task Export()
+    {
+        ShowHideLoading = true;
+        if (listForExport == null || listForExport.Count == 0)
+        {
+            ShowHideLoading = false;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(ExportFileName))
+            ExportFileName = defExportFileName;
+
+        List<ExportItem> exports = new List<ExportItem>();
+        foreach (ExportItem exportItem in listForExport)
+        {
+            if (exportItem.ToExport)
+                exports.Add(exportItem);
+        }
+
+        result = await IFileManager.CreateExport(exports, ExportFileName);
+
+        ShowHideLoading = false;
+    }
+}

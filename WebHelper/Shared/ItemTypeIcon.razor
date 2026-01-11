@@ -1,0 +1,28 @@
+﻿@switch (Type)
+{
+    case ItemFileType.Text:
+        <i class="icon-txt margin5"></i>
+        break;
+    case ItemFileType.Table:
+        <i class="icon-table margin5"></i>
+        break;
+    case ItemFileType.Images:
+        <i class="icon-image margin5"></i>
+        break;
+    case ItemFileType.URLs:
+        <i class="icon-url margin5"></i>
+        break;
+    case ItemFileType.Task:
+        <i class="icon-task margin5"></i>
+        break;
+    case ItemFileType.PDF:
+        <i class="icon-pdf margin5"></i>
+        break;
+    case ItemFileType.ExtApp:
+        <i class="icon-extapp margin5"></i>
+        break;
+}
+
+@code {
+    [Parameter] public ItemFileType Type { get; set; }
+}

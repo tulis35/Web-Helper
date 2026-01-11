@@ -1,0 +1,26 @@
+﻿<div>
+    @if (result != null)
+    {
+        <div class="margin10 row">
+            <i class="icon48 @result.Icon"></i>
+            <div class="result @result.Class roundedcorner25 padding5" style="width:95%;">
+                <span>@result.Message</span>
+                <button type="button" class="close" @onclick="HideResult">&times;</button>
+            </div>
+        </div>
+        <hr />
+    }
+</div>
+
+
+@code {
+    [Parameter] public Result result { get; set; }
+    [Parameter]
+    public EventCallback<Result> resultChanged { get; set; }
+
+    private void HideResult()
+    {
+        result = null;
+        resultChanged.InvokeAsync(result);
+    }
+}

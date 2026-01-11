@@ -1,0 +1,195 @@
+﻿@page "/tablefiledetail/{itemname}/{filename}"
+@inherits BasePage
+
+<TitleBar Title="@ItemFile.Name" Back="Back" Save="Save" UnSavedChanges="AreChanges" AddToFavorite="AddToFavorites"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+
+@if (ItemFile == null)
+{
+    <h3 class="" style="font-style:italic; color:lightgray;">Záznam nenalezen!</h3>
+}
+else
+{
+    <ResultDialog @bind-result="@result"></ResultDialog>
+    <div class="row MainBody">
+        <div class="col-xl-8 tablescroll">
+            <table class="width100p">
+                <thead>
+                    <tr class="table-thead-tr">
+                        <th class="table-td table-td-text">
+                            Text
+                        </th>
+                        <th class="table-td table-td-text width8p">
+                            Pořadí
+                        </th>
+                        <th class="table-td width10p" colspan="2">
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(DataRow row in ItemFile.TableView.Rows)
+                    {
+                        <tr class="table-tbody-tr">
+                            <td class="table-td table-td-text w-75">
+                                @row["Text"]
+                            </td>
+                            <td class="table-td">
+                                @row["Rank"]
+                            </td>
+                            <td class="table-td">
+                                <button class="btn btn-warning margin5" @onclick="() => OpenEditDialog(row)"><i class="icon32 icon-edit"></i></button>
+                            </td>
+                            <td class="table-td">
+                                <button class="btn btn-danger margin5" @onclick="() => OpenDialogDelete(row)"><i class="icon32 icon-delete"></i></button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-xl-4">
+            <div>
+                Pořadí: <input type="number" @bind="NewRank" min="1" class="width100p margin5" />
+            </div>
+            <div>
+                Text:
+            </div>
+            <textarea @bind="NewText" placeholder="Text..." class="width100p margin5 heightTextArea"></textarea>
+            <div>
+                <button class="btn btn-primary" @onclick="AddRow">Přidat</button>
+            </div>
+        </div>
+    </div>
+
+    @if (DialogDeleteIsOpen)
+    {
+        <GenericDialog Caption="Smazat záznam"
+                       Message="@DeleteMessage"
+                       OnClose="@DeleteItem"
+                       Type="GenericDialog.Category.DeleteNot">
+        </GenericDialog>
+    }@if (ShowHideEditDialog)
+    {
+        <EditTableRow OnClose="EditRow" RowToEdit="RowToEdit"></EditTableRow>
+    }
+}
+
+@code {
+    [Parameter] public string FileName { get; set; }
+    [Parameter] public string ItemName { get; set; }
+    private ItemFile ItemFile;
+
+    private string DeleteMessage = "";
+    private DataRow RowToDelete = null;
+
+    private int NewRank = 1;
+    private string NewText = "";
+
+    private bool ShowHideEditDialog = false;
+    private DataRow RowToEdit = null;
+    private int EditRowIndex = -1;
+
+    private bool AreChanges = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        ItemFile = await IFileManager.GetTableFile(ItemName, FileName);
+        NewRank = ItemFile.TableView.Rows.Count + 1;
+        await IFileManager.AddLastShownItem(ItemName, ItemFile);
+        ShowHideLoading = false;        
+        AreChanges = false;
+    }
+
+    private void Back()
+    {
+        NavManager.NavigateTo("/entrydetail/" + ItemName);
+    }
+
+    private async Task Save()
+    {
+        ShowHideLoading = true;
+        result = await IFileManager.SaveTable(ItemFile);
+
+        await RefreshData();
+    }
+
+    private async Task DeleteItem(bool IsOK)
+    {
+        if (IsOK)
+        {
+            ItemFile.TableView.Rows.Remove(RowToDelete);
+
+            RowToDelete = null;
+
+            NewRank = ItemFile.TableView.Rows.Count == 1 ? 1 : ItemFile.TableView.Rows.Count - 1;
+
+            AreChanges = true;
+        }
+        DialogDeleteIsOpen = false;
+    }
+
+    private void OpenDialogDelete(DataRow row)
+    {
+        DialogDeleteIsOpen = true;
+        DeleteMessage = "Smazat tento záznam?";
+        RowToDelete = row;
+    }
+
+    private void AddRow()
+    {
+        if (string.IsNullOrEmpty(NewText))
+        {
+            result = new Result(ResultState.Error, "Text musí být vyplněn!");
+            return;
+        }
+
+        DataRow newRow = ItemFile.TableView.NewRow();
+        newRow["Text"] = NewText;
+        newRow["Rank"] = NewRank;
+        ItemFile.TableView.Rows.Add(newRow);
+
+        NewText = "";
+        NewRank = ItemFile.TableView.Rows.Count + 1;
+
+        AreChanges = true;
+    }
+
+    private void OpenEditDialog(DataRow dr)
+    {
+
+        RowToEdit = dr;
+        EditRowIndex = ItemFile.TableView.Rows.IndexOf(dr);
+        ShowHideEditDialog = true;
+    }
+
+    private async Task EditRow(DataRow dr)
+    {
+        if(dr != null)
+        {
+            DataRow row = ItemFile.TableView.Rows[EditRowIndex];
+            row["Text"] = dr["Text"];
+            row["Rank"] = dr["Rank"];
+            ItemFile.TableView.AcceptChanges();
+            AreChanges = true;
+        }
+        EditRowIndex = -1;
+        ShowHideEditDialog = false;
+    }
+
+    private async Task AddToFavorites()
+    {
+        ShowHideLoading = true;
+        result = await IFileManager.AddFavorite(ItemName, ItemFile);
+        ShowHideLoading = false;
+    }
+}

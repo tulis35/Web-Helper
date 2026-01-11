@@ -1,0 +1,13 @@
+﻿@page "/"
+
+<EntryList />
+
+
+@code{
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await IFileManager.CreateFolders();
+    }
+
+}

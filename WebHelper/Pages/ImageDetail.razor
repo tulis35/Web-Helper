@@ -1,0 +1,95 @@
+﻿@page "/imagedetail/{itemname}/{filename}"
+@inherits BasePage
+
+<TitleBar Title="@ItemFile.Name" Back="Back" AddNote="ShowNote" IsNote="!string.IsNullOrEmpty(ItemFile.RawContent)" AddToFavorite="AddToFavorites"></TitleBar>
+
+@if (ShowHideLoading)
+{
+    <Loading></Loading>
+}
+
+@if (ItemFile == null)
+{
+    <h3 class="" style="font-style:italic; color:lightgray;">Záznam nenalezen!</h3>
+}
+else
+{
+    <ResultDialog @bind-result="@result"></ResultDialog>
+    <div class="MainBody">
+        <img src="@ImagePath" alt="WebHelper picture" style="max-width:99%;max-height:100%;"/>
+    </div>
+    @if (ShowNoteDialog)
+    {
+        <div class="modal fade show" id="myModal" style="display:block; background-color: rgba(10,10,10,.8);" aria-modal="true" role="dialog">
+            <div class="modal-dialog" style="padding-top:100px;max-width:800px;">
+                <div class="modal-content" style="height:500px;">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Poznámka</h4>
+                        <button type="button" class="close" @onclick="() => ShowNoteDialog = false">
+                            &times;
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <textarea placeholder="Poznámka" style="width:100%; height:98%;background-color:peachpuff;" @bind="@ItemFile.RawContent"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" @onclick=@SaveNote>
+                            Uložit
+                        </button>
+                        <button type="button" class="btn btn-warning" @onclick="() => ShowNoteDialog = false">
+                            Zrušit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public string FileName { get; set; }
+    [Parameter] public string ItemName { get; set; }
+    private ItemFile ItemFile;
+
+    private bool ShowNoteDialog = false;
+
+    private string ImagePath = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        ShowHideLoading = true;
+        ItemFile = new ItemFile(ItemName, FileName, ItemFileType.Images);
+        ItemFile.RawContent = await IFileManager.GetImageNote(ItemFile);
+        ImagePath = ItemFile.Path.Replace(@"\",@"/");
+        await IFileManager.AddLastShownItem(ItemName, ItemFile);
+        ShowHideLoading = false;
+    }
+
+    private void Back()
+    {
+        NavManager.NavigateTo("/entrydetail/" + ItemName);
+    }
+
+    private void ShowNote()
+    {
+        ShowNoteDialog = true;
+    }
+
+    private async Task SaveNote()
+    {
+        result = await IFileManager.SaveImageNote(ItemFile);
+        ShowNoteDialog = false;
+    }
+
+    private async Task AddToFavorites()
+    {
+        ShowHideLoading = true;
+        result = await IFileManager.AddFavorite(ItemName, ItemFile);
+        ShowHideLoading = false;
+    }
+}

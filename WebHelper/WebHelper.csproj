@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Logs\**" />
+    <Compile Remove="Saves\**" />
+    <Compile Remove="wwwroot\PDFs\**" />
+    <Content Remove="Logs\**" />
+    <Content Remove="Saves\**" />
+    <Content Remove="wwwroot\PDFs\**" />
+    <EmbeddedResource Remove="Logs\**" />
+    <EmbeddedResource Remove="Saves\**" />
+    <EmbeddedResource Remove="wwwroot\PDFs\**" />
+    <None Remove="Logs\**" />
+    <None Remove="Saves\**" />
+    <None Remove="wwwroot\PDFs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\UserSettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+  </ItemGroup>
+
+</Project>

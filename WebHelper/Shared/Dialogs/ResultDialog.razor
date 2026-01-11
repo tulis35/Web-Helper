@@ -1,0 +1,60 @@
+﻿@if (result != null)
+{
+    <div class="modal fade show" id="myModal" style="display:block; background-color: rgba(10,10,10,.8);" aria-modal="true" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">@caption</h4>
+                    <button type="button" class="close" @onclick="HideResult">
+                        &times;
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="margin5 " style="display:flex;">
+                        <div style="width:20%;">
+                            <i class="icon48 @result.Icon"></i>
+                        </div>
+                        <div>
+                            <span style="vertical-align: -webkit-baseline-middle;font-weight:bold;">@result.Message</span>
+                        </div>                        
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="HideResult">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+@code {
+    [Parameter] public Result result { get; set; }
+    [Parameter]
+    public EventCallback<Result> resultChanged { get; set; }
+
+    private string caption;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (result != null)
+        {
+            switch (result.ResultState)
+            {
+                case WebHelper.Models.Enums.ResultState.Success:
+                    caption = "Úspěch";
+                    break;
+                case WebHelper.Models.Enums.ResultState.Error:
+                    caption = "Chyba";
+                    break;
+                case WebHelper.Models.Enums.ResultState.Info:
+                    caption = "Informace";
+                    break;
+            }
+        }
+    }
+
+    private void HideResult()
+    {
+        result = null;
+        resultChanged.InvokeAsync(result);
+    }
+}
