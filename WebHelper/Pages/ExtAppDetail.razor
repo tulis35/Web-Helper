@@ -19,6 +19,9 @@ else
         <div>
             <span style="font-weight:bold;">Cesta k souboru:</span>
             <input type="text" value="@ItemFile.ExtAppSettings.AppPath" class="margin5 width100p" @onchange="p => PathChange(p.Value.ToString())"/>
+            <div class="margin5">
+                <InputFile OnChange="@LoadFilePath"></InputFile>
+            </div>
         </div>
         <div>
             <span style="font-weight:bold;">Argumenty:</span>
@@ -83,5 +86,24 @@ else
     private void StartApp()
     {
         IFileManager.ExtAppStart(ItemFile);
+    }
+
+    private void LoadFilePath(InputFileChangeEventArgs e)
+    {
+        ShowHideLoading = true;
+
+        try
+        {
+            ItemFile.ExtAppSettings.AppPath += ItemFile.ExtAppSettings.AppPath.EndsWith("\\") ? e.File.Name : "\\" + e.File.Name;
+        }
+        catch (Exception ex)
+        {
+            result = new Result(ResultState.Error, "Načtení souboru selhalo." + "\r\n" + ex.Message);
+            Logger.Log(ex);
+        }
+        finally
+        {
+            ShowHideLoading = false;
+        }
     }
 }

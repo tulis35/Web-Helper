@@ -9,31 +9,17 @@
       "IsShortCut": false
     },
     {
-      "EntryName": "sdfghdf",
-      "ItemName": "tetetetete",
-      "ItemFileName": "tetetetete.json",
-      "ItemFileType": 6,
+      "EntryName": "tst",
+      "ItemName": "tr",
+      "ItemFileName": "tr.xml",
+      "ItemFileType": 4,
       "IsShortCut": false
     },
     {
-      "EntryName": "ttttt",
-      "ItemName": "ttttttttttttttt",
-      "ItemFileName": "ttttttttttttttt.xml",
-      "ItemFileType": 1,
-      "IsShortCut": false
-    },
-    {
-      "EntryName": "testovaci",
-      "ItemName": "testovaci t5",
-      "ItemFileName": "testovaci t5.xml",
-      "ItemFileType": 1,
-      "IsShortCut": false
-    },
-    {
-      "EntryName": "testovaci",
-      "ItemName": "t68",
-      "ItemFileName": "t68.txt",
-      "ItemFileType": 0,
+      "EntryName": "test45",
+      "ItemName": "heslo22",
+      "ItemFileName": "heslo22.png",
+      "ItemFileType": 2,
       "IsShortCut": false
     },
     {
@@ -42,8 +28,51 @@
       "ItemFileName": "asdfasdfasdfsdaf2.txt",
       "ItemFileType": 0,
       "IsShortCut": false
+    },
+    {
+      "EntryName": "tst",
+      "ItemName": "ukol",
+      "ItemFileName": "ukol.xml",
+      "ItemFileType": 4,
+      "IsShortCut": false
+    },
+    {
+      "EntryName": "sdfghdf",
+      "ItemName": "tetetetete",
+      "ItemFileName": "tetetetete.json",
+      "ItemFileType": 6,
+      "IsShortCut": false
     }
   ],
-  "FavoriteItems": [],
+  "FavoriteItems": [
+    {
+      "EntryName": "tst",
+      "ItemName": "ukol",
+      "ItemFileName": "ukol.xml",
+      "ItemFileType": 4,
+      "IsShortCut": false
+    },
+    {
+      "EntryName": "test45",
+      "ItemName": "asdfasdfasdfsdaf2",
+      "ItemFileName": "asdfasdfasdfsdaf2.txt",
+      "ItemFileType": 0,
+      "IsShortCut": false
+    },
+    {
+      "EntryName": "test45",
+      "ItemName": "heslo22",
+      "ItemFileName": "heslo22.png",
+      "ItemFileType": 2,
+      "IsShortCut": false
+    },
+    {
+      "EntryName": "tst",
+      "ItemName": "tr",
+      "ItemFileName": "tr.xml",
+      "ItemFileType": 4,
+      "IsShortCut": false
+    }
+  ],
   "MaxFileSizeInMB": 50
 }
