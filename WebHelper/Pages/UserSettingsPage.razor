@@ -1,7 +1,7 @@
 ﻿@page "/usersettingspage"
 @inherits BasePage
 
-<TitleBar Title="Nastavení" Refresh="RefreshData" Save="SaveUserSettings"></TitleBar>
+<TitleBar Title="Nastavení" Refresh="RefreshData" Save="SaveUserSettings" UnSavedChanges="AreChanges"></TitleBar>
 
 @if (ShowHideLoading)
 {
@@ -18,7 +18,7 @@ else
                     Počet posledních uložených záznamů:
                 </td>
                 <td>
-                    <input type="number" @bind-value="userSettings.NumberOfLastItemsSaved" class="margin5 width40p" min="0"/>
+                    <input type="number" @bind-value="userSettings.NumberOfLastItemsSaved" class="margin5 width40p" min="0" @onkeypress="() => AreChanges = true"/>
                 </td>
             </tr>
             <tr>
@@ -32,7 +32,7 @@ else
                     Maximální velikost souboru:
                 </td>
                 <td>
-                    <input type="number" @bind-value="userSettings.MaxFileSizeInMB" class="margin5 width40p" min="0"/> MB
+                    <input type="number" @bind-value="userSettings.MaxFileSizeInMB" class="margin5 width40p" min="0" @onkeypress="() => AreChanges = true" /> MB
                 </td>
             </tr>
         </table>
@@ -63,7 +63,7 @@ else
                                     {
                                         <tr class="table-tbody-tr">
                                             <td class="table-td" style="width:3%;">
-                                                <input type="checkbox" class="checkbox" @bind="item.Save" />
+                                                <input type="checkbox" class="checkbox" @bind="item.Save"/>
                                             </td>
                                             <td class="table-td" style="width:3%;">
                                                 @item.ShowName()
@@ -76,7 +76,7 @@ else
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary" @onclick=@SaveFavoriteItems>
-                            Uložit
+                            Hotovo
                         </button>
                         <button type="button" class="btn btn-warning" @onclick="() => showFavoriteItemsDialog = false">
                             Zrušit
@@ -101,6 +101,7 @@ else
     {
         ShowHideLoading = true;
         userSettings = await IFileManager.GetUserSettings();
+        AreChanges = false;
         ShowHideLoading = false;
     }
 
@@ -108,6 +109,7 @@ else
     {
         ShowHideLoading = true;
         result = await IFileManager.SaveUserSettings(userSettings);
+        AreChanges = false;
         ShowHideLoading = false;
     }
 
@@ -115,8 +117,10 @@ else
     {
         for (int i = userSettings.FavoriteItems.Count - 1; i >= 0; i--)
         {
-            if (!userSettings.FavoriteItems[i].Save)
+            if (!userSettings.FavoriteItems[i].Save){
                 userSettings.FavoriteItems.RemoveAt(i);
+                AreChanges = true;
+            }
         }
         showFavoriteItemsDialog = false;
     }

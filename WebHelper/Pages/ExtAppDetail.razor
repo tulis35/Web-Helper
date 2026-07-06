@@ -36,8 +36,6 @@ else
     [Parameter] public string ItemName { get; set; }
     private ItemFile ItemFile;
 
-    private bool AreChanges = false;
-
     protected override async Task OnInitializedAsync()
     {
         await RefreshData();

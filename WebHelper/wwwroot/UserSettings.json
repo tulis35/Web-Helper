@@ -2,6 +2,13 @@
   "NumberOfLastItemsSaved": 6,
   "LastShownItems": [
     {
+      "EntryName": "testovaci",
+      "ItemName": "ttrterrrtre",
+      "ItemFileName": "ttrterrrtre.json",
+      "ItemFileType": 6,
+      "IsShortCut": false
+    },
+    {
       "EntryName": "sdfghdf",
       "ItemName": "asdfasdfas",
       "ItemFileName": "asdfasdfas.json",
@@ -35,13 +42,6 @@
       "ItemFileName": "ukol.xml",
       "ItemFileType": 4,
       "IsShortCut": false
-    },
-    {
-      "EntryName": "sdfghdf",
-      "ItemName": "tetetetete",
-      "ItemFileName": "tetetetete.json",
-      "ItemFileType": 6,
-      "IsShortCut": false
     }
   ],
   "FavoriteItems": [
@@ -64,13 +64,6 @@
       "ItemName": "heslo22",
       "ItemFileName": "heslo22.png",
       "ItemFileType": 2,
-      "IsShortCut": false
-    },
-    {
-      "EntryName": "tst",
-      "ItemName": "tr",
-      "ItemFileName": "tr.xml",
-      "ItemFileType": 4,
       "IsShortCut": false
     }
   ],

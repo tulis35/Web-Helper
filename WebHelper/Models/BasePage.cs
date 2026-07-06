@@ -9,5 +9,6 @@ namespace WebHelper.Models
         public bool ShowHideLoading = true;
         public bool ShowRenameDialog = false;
         public bool DialogDeleteIsOpen = false;
+        public bool AreChanges = false;
     }
 }
