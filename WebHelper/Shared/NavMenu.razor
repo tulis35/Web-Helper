@@ -1,4 +1,5 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
+﻿@using System.Threading
+<div class="top-row pl-4 navbar navbar-dark">
     <a class="navbar-brand" href="">Web Helper</a>
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
@@ -66,10 +67,13 @@
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
     private int number = 0;
-    protected override Task OnInitializedAsync()
+
+    private readonly CancellationTokenSource _cts = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        AreTasks();
-        return base.OnInitializedAsync();
+        await base.OnInitializedAsync();
+        _ = AreTasks();
     }
 
     private void ToggleNavMenu()
@@ -79,6 +83,22 @@
 
     public async Task AreTasks()
     {
-        number = await IFileManager.GetNmberOfAllUnfinishedTasks();
+        using PeriodicTimer taskTimer = new PeriodicTimer(TimeSpan.FromSeconds(2));
+
+        try
+        {
+            while (await taskTimer.WaitForNextTickAsync(_cts.Token))
+            {
+                number = await IFileManager.GetNmberOfAllUnfinishedTasks();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch(OperationCanceledException){}
+    }
+
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
     }
 }

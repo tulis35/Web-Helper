@@ -13,13 +13,27 @@ namespace WebHelper
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
-            /*var builder = CreateHostBuilder(args);
-            builder.Services.AddTransient<IFileManager, FileManager>();
+            var h = CreateHostBuilder(args).Build();
+            
+            using(var scope = h.Services.CreateScope())
+            {
+                var fileManager = scope.ServiceProvider.GetRequiredService<IFileManager>();
 
-            builder.Build().Run();*/
+                try
+                {
+                    // Zavoláme vaši asynchronní metodu pro vytvoření složek
+                    await fileManager.CreateFolders();
+                }
+                catch (Exception ex)
+                {
+                    // Doporučuji odchytit případnou chybu (např. chybějící práva k zápisu na disk)
+                    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "Došlo k chybě při vytváření složek při startu aplikace.");
+                }
+            }
+            await h.RunAsync();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
